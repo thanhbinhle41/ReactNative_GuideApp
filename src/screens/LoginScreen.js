@@ -2,7 +2,6 @@ import {
   StyleSheet,
   Text,
   View,
-  TextInput,
   TouchableOpacity,
 } from "react-native";
 import React from "react";
@@ -17,6 +16,7 @@ import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import CustomButton from "../components/CustomButton";
 import InputField from "../components/InputField";
+import { MAIN_COLOR } from "../utils/color";
 
 export default function LoginScreen({ navigation }) {
   return (
@@ -57,7 +57,7 @@ export default function LoginScreen({ navigation }) {
           fieldButtonFunction={() => {}} 
         ></InputField>
 
-        <CustomButton label={"Login"} onPresss={() => {}}></CustomButton>
+        <CustomButton label={"Login"} onPresss={() => {navigation.navigate("TabNavigator", { screen: 'Home' })}}></CustomButton>
 
         <Text style={styles.loginWithText}>Or, login with...</Text>
 
@@ -128,7 +128,7 @@ const styles = StyleSheet.create({
 
   // REGISTER
   registerText: {
-    color: "#AD40AF",
+    color: MAIN_COLOR,
     fontWeight: "700",
   },
 });

@@ -1,5 +1,6 @@
 import { StyleSheet, Text, View, TouchableOpacity, TextInput } from "react-native";
 import React from "react";
+import { MAIN_COLOR } from "../utils/color";
 
 const InputField = ({
   label,
@@ -24,12 +25,11 @@ const InputField = ({
           placeholder={label}
           keyboardType={keyboardType}
           style={styles.input}
-          secureTextEntry={true}
         ></TextInput>
       )}
 
       <TouchableOpacity onPress={{fieldButtonFunction}}>
-        <Text style={{ color: "#AD40AF", fontWeight: "700" }}>
+        <Text style={{ color: MAIN_COLOR, fontWeight: "700" }}>
           {fieldButtonLabel}
         </Text>
       </TouchableOpacity>

@@ -1,5 +1,6 @@
 import { StyleSheet, Text, TouchableOpacity } from "react-native";
 import React from "react";
+import { MAIN_COLOR } from "../utils/color";
 
 const CustomButton = ({ label, onPresss }) => {
   return (
@@ -13,7 +14,7 @@ export default CustomButton;
 
 const styles = StyleSheet.create({
   btn: {
-    backgroundColor: "#AD40AF",
+    backgroundColor: MAIN_COLOR,
     padding: 20,
     borderRadius: 10,
     marginBottom: 30,

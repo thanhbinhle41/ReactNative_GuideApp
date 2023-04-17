@@ -20,6 +20,7 @@ import InputField from "../components/InputField";
 import CustomButton from "../components/CustomButton";
 
 import DateTimePicker from "@react-native-community/datetimepicker";
+import { MAIN_COLOR } from "../utils/color";
 
 export default function RegisterScreen({ navigation }) {
   // STATE
@@ -193,7 +194,7 @@ const styles = StyleSheet.create({
 
   // REGISTER
   registerText: {
-    color: "#AD40AF",
+    color: MAIN_COLOR,
     fontWeight: "700",
   },
 
