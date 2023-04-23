@@ -1,9 +1,19 @@
-import { StyleSheet, Text, View, Image } from "react-native";
+import { StyleSheet, Text, View, Image, TouchableOpacity } from "react-native";
 import React from "react";
 import RatingStar from "./RatingStars";
 import { MAIN_COLOR } from "../utils/color";
 
-const Blog = ({ name, user, rating, sourceImg }) => {
+import MaterialIcons from "react-native-vector-icons/MaterialIcons";
+import Feather from "react-native-vector-icons/Feather";
+
+const Blog = ({
+  name,
+  user,
+  rating,
+  sourceImg,
+  showUser = true,
+  showActions = false,
+}) => {
   return (
     <View style={styles.container}>
       <Image style={styles.img} resizeMode="cover" source={sourceImg}></Image>
@@ -16,14 +26,49 @@ const Blog = ({ name, user, rating, sourceImg }) => {
             onRatingChange={() => {}}
           ></RatingStar>
 
-          <View style={styles.user}>
-            <Text style={styles.userText}>{user.name}</Text>
-            <Image
-              style={styles.imgUser}
-              resizeMode="cover"
-              source={user.image}
-            ></Image>
-          </View>
+          {showUser && (
+            <View style={styles.user}>
+              <Text style={styles.userText}>{user.name}</Text>
+              <Image
+                style={styles.imgUser}
+                resizeMode="cover"
+                source={user.image}
+              ></Image>
+            </View>
+          )}
+
+          {showActions && (
+            <View style={styles.actions}>
+              <TouchableOpacity
+                style={{ flexDirection: "row", alignItems: "center", gap: 2 }}
+              >
+                <MaterialIcons
+                  name="edit"
+                  size={16}
+                  color={"#0072C6"}
+                ></MaterialIcons>
+                <Text
+                  style={{ color: "#0072C6", fontWeight: 600, fontSize: 14 }}
+                >
+                  Edit
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={{ flexDirection: "row", alignItems: "center", gap: 2 }}
+              >
+                <Feather
+                  name="trash-2"
+                  size={16}
+                  color={"#FF0000"}
+                ></Feather>
+                <Text
+                  style={{ color: "#FF0000", fontWeight: 600, fontSize: 14 }}
+                >
+                  Delete
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
       </View>
     </View>
@@ -67,12 +112,19 @@ const styles = StyleSheet.create({
   },
   userText: {
     fontSize: 14,
-    fontStyle: 'italic', 
+    fontStyle: "italic",
     fontWeight: 700,
-    color: "#5DADEC"
+    color: "#5DADEC",
   },
   imgUser: {
     width: 36,
     height: 36,
   },
+
+  // ACTIONS
+  actions: {
+    flexDirection: "row",
+    gap: 16,
+    paddingTop: 20
+  }
 });

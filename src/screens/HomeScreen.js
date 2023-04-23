@@ -2,7 +2,7 @@ import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import React, { useState } from "react";
 
 import { SafeAreaView } from "react-native-safe-area-context";
-import { FlatList, ScrollView, TextInput } from "react-native-gesture-handler";
+import { FlatList, TextInput } from "react-native-gesture-handler";
 // import { ListItem } from 'react-native-elements'
 
 import Ionicons from "react-native-vector-icons/Ionicons";
@@ -23,25 +23,37 @@ const HomeScreen = ({ navigation }) => {
     {
       name: "Tam đảo - Vĩnh Phúc",
       rating: 4,
-      user: {name: "Binh Beo Beu", image: require("../assets/images/misc/user.png")},
+      user: {
+        name: "Binh Beo Beu",
+        image: require("../assets/images/misc/user.png"),
+      },
       sourceImg: require("../assets/images/background/tamDao.jpg"),
     },
     {
       name: "Tam đảo - Vĩnh Phúc",
       rating: 4,
-      user: {name: "Binh Beo Beu", image: require("../assets/images/misc/user.png")},
+      user: {
+        name: "Binh Beo Beu",
+        image: require("../assets/images/misc/user.png"),
+      },
       sourceImg: require("../assets/images/background/tamDao.jpg"),
     },
     {
       name: "Tam đảo - Vĩnh Phúc",
       rating: 4,
-      user: {name: "Binh Beo Beu", image: require("../assets/images/misc/user.png")},
+      user: {
+        name: "Binh Beo Beu",
+        image: require("../assets/images/misc/user.png"),
+      },
       sourceImg: require("../assets/images/background/tamDao.jpg"),
     },
     {
       name: "Tam đảo - Vĩnh Phúc",
       rating: 4,
-      user: {name: "Binh Beo Beu", image: require("../assets/images/misc/user.png")},
+      user: {
+        name: "Binh Beo Beu",
+        image: require("../assets/images/misc/user.png"),
+      },
       sourceImg: require("../assets/images/background/tamDao.jpg"),
     },
   ];
@@ -52,7 +64,7 @@ const HomeScreen = ({ navigation }) => {
   return (
     <SafeAreaView style={styles.container}>
       {/* HEADER TEXT */}
-      <View style={styles.header}>
+      
         <View>
           <Text style={styles.textHeader}>
             <Text>One </Text>
@@ -102,7 +114,7 @@ const HomeScreen = ({ navigation }) => {
             );
           }}
         />
-      </View>
+      
 
       <View style={styles.main}>
         <FlatList
@@ -110,13 +122,15 @@ const HomeScreen = ({ navigation }) => {
           vertical={true}
           showsVerticalScrollIndicator={false}
           keyExtractor={(_, index) => index}
-          renderItem={({item}) => {
-            return <Blog
-              name={item.name}
-              sourceImg={item.sourceImg}
-              rating={item.rating}
-              user={item.user}
-            ></Blog>;
+          renderItem={({ item }) => {
+            return (
+              <Blog
+                name={item.name}
+                sourceImg={item.sourceImg}
+                rating={item.rating}
+                user={item.user}
+              ></Blog>
+            );
           }}
         />
       </View>
@@ -197,5 +211,6 @@ const styles = StyleSheet.create({
   // MAIN CONTENT
   main: {
     flex: 4,
+    marginTop: 20
   },
 });
