@@ -11,8 +11,15 @@ import TabNavigator from './src/navigation/TabNavigator';
 const Stack = createNativeStackNavigator();
 
 function App() {
+  const CustomDefaultTheme = {
+    colors: {
+      background: '#ffffff',
+      text: '#333333'
+    }
+  }
+
   return (
-    <NavigationContainer>
+    <NavigationContainer theme={CustomDefaultTheme}> 
       <Stack.Navigator screenOptions={{headerShown: false}}>
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="Register" component={RegisterScreen} />
