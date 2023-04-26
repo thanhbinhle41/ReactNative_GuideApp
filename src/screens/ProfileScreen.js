@@ -17,9 +17,7 @@ const ProfileScreen = () => {
       <View style={styles.userInfoSection}>
         <View style={{ flexDirection: "row", marginTop: 15 }}>
           <Avatar.Image
-            source={{
-              uri: "https://w7.pngwing.com/pngs/81/570/png-transparent-profile-logo-computer-icons-user-user-blue-heroes-logo-thumbnail.png",
-            }}
+            source={require('../assets/images/misc/pika.png')}
             size={80}
           />
           <View style={{ marginLeft: 20 }}>
@@ -65,30 +63,30 @@ const ProfileScreen = () => {
       </View>
 
       <View style={styles.menuWrapper}>
-        <TouchableRipple onPress={() => {}}>
+        <TouchableRipple onPress={() => { }}>
           <View style={styles.menuItem}>
-            <Icon name="heart-outline" color={MAIN_COLOR} size={25}/>
+            <Icon name="heart-outline" color={MAIN_COLOR} size={25} />
             <Text style={styles.menuItemText}>Your Favorites</Text>
           </View>
         </TouchableRipple>
-        
-        <TouchableRipple onPress={() => {}}>
+
+        <TouchableRipple onPress={() => { }}>
           <View style={styles.menuItem}>
-            <Icon name="credit-card" color={MAIN_COLOR} size={25}/>
+            <Icon name="credit-card" color={MAIN_COLOR} size={25} />
             <Text style={styles.menuItemText}>Payment</Text>
           </View>
         </TouchableRipple>
 
-        <TouchableRipple onPress={() => {}}>
+        <TouchableRipple onPress={() => { }}>
           <View style={styles.menuItem}>
-            <Icon name="share-outline" color={MAIN_COLOR} size={25}/>
+            <Icon name="share-outline" color={MAIN_COLOR} size={25} />
             <Text style={styles.menuItemText}>Tell your friends</Text>
           </View>
         </TouchableRipple>
 
-        <TouchableRipple onPress={() => {}}>
+        <TouchableRipple onPress={() => { }}>
           <View style={styles.menuItem}>
-            <Icon name="account-settings-outline" color={MAIN_COLOR} size={25}/>
+            <Icon name="account-settings-outline" color={MAIN_COLOR} size={25} />
             <Text style={styles.menuItemText}>Settings</Text>
           </View>
         </TouchableRipple>
