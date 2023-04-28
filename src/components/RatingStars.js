@@ -3,7 +3,13 @@ import { View, TouchableOpacity, StyleSheet, Text } from "react-native";
 import Icon from "react-native-vector-icons/Ionicons";
 import { MAIN_COLOR } from "../utils/color";
 
-const RatingStar = ({ initialRating, maxRating, onRatingChange }) => {
+const RatingStar = ({
+  initialRating,
+  maxRating,
+  onRatingChange,
+  size = 16,
+  showRatingText = true,
+}) => {
   const [rating, setRating] = useState(initialRating);
 
   const handleRatingChange = (newRating) => {
@@ -22,7 +28,7 @@ const RatingStar = ({ initialRating, maxRating, onRatingChange }) => {
         >
           <Icon
             name={i <= rating ? "star" : "star-outline"}
-            size={16}
+            size={size}
             color="#FFD700"
           />
         </TouchableOpacity>
@@ -31,14 +37,18 @@ const RatingStar = ({ initialRating, maxRating, onRatingChange }) => {
     return stars;
   };
 
-  return <View style={styles.container}>
-    {renderStars()}
+  return (
+    <View style={styles.container}>
+      {renderStars()}
 
-    <Text>
-        <Text style={styles.ratingText}> 4 </Text>
-        <Text style={styles.numberOfRating}>(180)</Text>
-    </Text>
-  </View>;
+      {showRatingText && (
+        <Text>
+          <Text style={styles.ratingText}> 4 </Text>
+          <Text style={styles.numberOfRating}>(180)</Text>
+        </Text>
+      )}
+    </View>
+  );
 };
 
 const styles = StyleSheet.create({
@@ -51,13 +61,12 @@ const styles = StyleSheet.create({
   },
   ratingText: {
     color: MAIN_COLOR,
-    fontWeight: 600
+    fontWeight: 600,
   },
   numberOfRating: {
     color: MAIN_COLOR,
     fontStyle: "italic",
-  }
-
+  },
 });
 
 export default RatingStar;

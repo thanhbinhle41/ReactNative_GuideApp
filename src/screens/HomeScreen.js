@@ -129,6 +129,7 @@ const HomeScreen = ({ navigation }) => {
                 sourceImg={item.sourceImg}
                 rating={item.rating}
                 user={item.user}
+                navigation={navigation}
               ></Blog>
             );
           }}

@@ -6,20 +6,86 @@ import FontAwesome from "react-native-vector-icons/FontAwesome";
 import Feather from "react-native-vector-icons/Feather";
 import { MAIN_COLOR } from '../utils/color';
 
-import Animated from 'react-native-reanimated';
 import BottomSheet from 'reanimated-bottom-sheet';
+import Animated from 'react-native-reanimated';
 
 const EditProfileScreen = () => {
 
-  bs = React.createRef();
-  fall = new Animated.Value(1);
+  const takePhotoFromCamera = () => {
+    // ImagePicker.openCamera({
+    //   compressImageMaxWidth: 300,
+    //   compressImageMaxHeight: 300,
+    //   cropping: true,
+    //   compressImageQuality: 0.7
+    // }).then(image => {
+    //   console.log(image);
+    //   setImage(image.path);
+    //   this.bs.current.snapTo(1);
+    // });
+  }
+
+  const choosePhotoFromLibrary = () => {
+    // ImagePicker.openPicker({
+    //   width: 300,
+    //   height: 300,
+    //   cropping: true,
+    //   compressImageQuality: 0.7
+    // }).then(image => {
+    //   console.log(image);
+    //   setImage(image.path);
+    //   this.bs.current.snapTo(1);
+    // });
+  }
+
+  const renderInner = () => (
+    <View style={styles.panel}>
+      <View style={{ alignItems: 'center' }}>
+        <Text style={styles.panelTitle}>Upload Photo</Text>
+        <Text style={styles.panelSubtitle}>Choose Your Profile Picture</Text>
+      </View>
+      <TouchableOpacity style={styles.panelButton} onPress={() => {}}>
+        <Text style={styles.panelButtonTitle}>Take Photo</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.panelButton} onPress={() => {}}>
+        <Text style={styles.panelButtonTitle}>Choose From Library</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={styles.panelButton}
+        onPress={() => bs.current.snapTo(1)}>
+        <Text style={styles.panelButtonTitle}>Cancel</Text>
+      </TouchableOpacity>
+    </View>
+  );
+
+  const renderHeader = () => (
+    <View style={styles.header}>
+      <View style={styles.panelHeader}>
+        <View style={styles.panelHandle} />
+      </View>
+    </View>
+  );
+
+  const bs = React.useRef(null);
+  const fall = new Animated.Value(1);
 
   return (
     <View style={styles.container}>
-      <BottomSheet></BottomSheet>
-      <View style={{ margin: 20 }}>
+      <BottomSheet
+        ref={bs}
+        snapPoints={[330, 0]}
+        renderContent={renderInner}
+        // renderHeader={renderHeader}
+        initialSnap={1}
+        callbackNode={fall}
+        enabledGestureInteraction={true}
+        borderRadius={10}
+      />
+      <Animated.View style={{
+        margin: 20,
+        opacity: Animated.add(0.1, Animated.multiply(fall, 1.0)),
+      }}>
         <View style={{ alignItems: 'center' }}>
-          <TouchableOpacity onPress={() => { }}>
+          <TouchableOpacity onPress={() => bs.current.snapTo(0)}>
             <View style={{
               height: 100,
               width: 100,
@@ -56,7 +122,7 @@ const EditProfileScreen = () => {
         </View>
 
         <View style={styles.action}>
-          <FontAwesome name='user-o' size={20} style={{marginBottom: 10}}/>
+          <FontAwesome name='user-o' size={20} style={{ marginBottom: 10 }} />
           <TextInput
             placeholder='First Name'
             placeholderTextColor="#666666"
@@ -66,7 +132,7 @@ const EditProfileScreen = () => {
         </View>
 
         <View style={styles.action}>
-          <FontAwesome name='user-o' size={20} style={{marginBottom: 10}}/>
+          <FontAwesome name='user-o' size={20} style={{ marginBottom: 10 }} />
           <TextInput
             placeholder='Last Name'
             placeholderTextColor="#666666"
@@ -76,7 +142,7 @@ const EditProfileScreen = () => {
         </View>
 
         <View style={styles.action}>
-          <Feather name='phone' size={20} style={{marginBottom: 10}}/>
+          <Feather name='phone' size={20} style={{ marginBottom: 10 }} />
           <TextInput
             placeholder='Phone'
             placeholderTextColor="#666666"
@@ -87,7 +153,7 @@ const EditProfileScreen = () => {
         </View>
 
         <View style={styles.action}>
-          <FontAwesome name='envelope-o' size={20} style={{marginBottom: 10}}/>
+          <FontAwesome name='envelope-o' size={20} style={{ marginBottom: 10 }} />
           <TextInput
             placeholder='Email'
             keyboardType='email-address'
@@ -98,7 +164,7 @@ const EditProfileScreen = () => {
         </View>
 
         <View style={styles.action}>
-          <FontAwesome name='globe' size={20} style={{marginBottom: 10}}/>
+          <FontAwesome name='globe' size={20} style={{ marginBottom: 10 }} />
           <TextInput
             placeholder='Country'
             placeholderTextColor="#666666"
@@ -108,7 +174,7 @@ const EditProfileScreen = () => {
         </View>
 
         <View style={styles.action}>
-          <Icon name='map-marker-outline' size={20} style={{marginBottom: 10}}/>
+          <Icon name='map-marker-outline' size={20} style={{ marginBottom: 10 }} />
           <TextInput
             placeholder='City'
             placeholderTextColor="#666666"
@@ -117,11 +183,11 @@ const EditProfileScreen = () => {
           />
         </View>
 
-        <TouchableOpacity style={styles.commandButton} onPress={() => {}}>
+        <TouchableOpacity style={styles.commandButton} onPress={() => { }}>
           <Text style={styles.panelButtonTitle}>Submit</Text>
         </TouchableOpacity>
 
-      </View>
+      </Animated.View>
     </View>
   )
 }
@@ -143,12 +209,12 @@ const styles = StyleSheet.create({
     padding: 20,
     backgroundColor: '#FFFFFF',
     paddingTop: 20,
-    // borderTopLeftRadius: 20,
-    // borderTopRightRadius: 20,
-    // shadowColor: '#000000',
-    // shadowOffset: {width: 0, height: 0},
-    // shadowRadius: 5,
-    // shadowOpacity: 0.4,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 0 },
+    shadowRadius: 5,
+    shadowOpacity: 0.4,
   },
   header: {
     backgroundColor: '#FFFFFF',
@@ -184,7 +250,7 @@ const styles = StyleSheet.create({
   panelButton: {
     padding: 13,
     borderRadius: 10,
-    backgroundColor: '#FF6347',
+    backgroundColor: MAIN_COLOR,
     alignItems: 'center',
     marginVertical: 7,
   },

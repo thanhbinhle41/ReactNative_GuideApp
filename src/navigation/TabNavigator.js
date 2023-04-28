@@ -15,10 +15,12 @@ import NotificationsScreen from "../screens/NotificationsScreen";
 import { MAIN_COLOR } from "../utils/color";
 import { useTheme } from "react-native-paper";
 import EditProfileScreen from "../screens/EditProfileScreen";
+import DetailPlaceScreen from "../screens/DetailPlaceScreen";
 
 const Tab = createBottomTabNavigator();
 
 const ProfileStack = createNativeStackNavigator();
+const HomeStack = createNativeStackNavigator(); 
 
 const TabNavigator = () => {
   return (
@@ -33,7 +35,7 @@ const TabNavigator = () => {
     >
       <Tab.Screen
         name="Home"
-        component={HomeScreen}
+        component={HomeStackScreen}
         options={{
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="home-outline" color={color} size={size}></Ionicons>
@@ -60,7 +62,7 @@ const TabNavigator = () => {
         component={NotificationsScreen}
         options={{
           tabBarBadge: 3,
-          tabBarBadgeStyle: {backgroundColor: 'red'},
+          tabBarBadgeStyle: { backgroundColor: 'red' },
           tabBarIcon: ({ color, size }) => (
             <Ionicons
               name="notifications-outline"
@@ -132,5 +134,23 @@ const ProfileStackScreen = ({ navigation }) => {
         component={EditProfileScreen}
       />
     </ProfileStack.Navigator>
+  );
+};
+
+const HomeStackScreen = ({ navigation }) => {
+
+  return (
+    <HomeStack.Navigator
+      screenOptions={{ headerShown: false }}
+    >
+      <HomeStack.Screen
+        name="HomeScreen"
+        component={HomeScreen}
+      />
+      <HomeStack.Screen
+        name="DetailPlaceScreen"
+        component={DetailPlaceScreen}
+      />
+    </HomeStack.Navigator>
   );
 };
