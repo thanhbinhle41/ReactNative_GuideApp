@@ -9,6 +9,8 @@ const InputField = ({
   keyboardType,
   fieldButtonLabel,
   fieldButtonFunction,
+  value,
+  onChange
 }) => {
   return (
     <View style={styles.viewInput}>
@@ -19,12 +21,16 @@ const InputField = ({
           keyboardType={keyboardType}
           style={styles.input}
           secureTextEntry={true}
+          value={value}
+          onChangeText={(text) => onChange(text)}
         ></TextInput>
       ) : (
         <TextInput
           placeholder={label}
           keyboardType={keyboardType}
           style={styles.input}
+          value={value}
+          onChangeText={(text) => onChange(text)}
         ></TextInput>
       )}
 

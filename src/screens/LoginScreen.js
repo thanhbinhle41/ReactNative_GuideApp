@@ -1,10 +1,5 @@
-import {
-  StyleSheet,
-  Text,
-  View,
-  TouchableOpacity,
-} from "react-native";
-import React from "react";
+import { StyleSheet, Text, View, TouchableOpacity } from "react-native";
+import React, { useState } from "react";
 
 import LoginSVG from "../assets/images/misc/login.svg";
 import GoogleSVG from "../assets/images/misc/google.svg";
@@ -18,7 +13,47 @@ import CustomButton from "../components/CustomButton";
 import InputField from "../components/InputField";
 import { MAIN_COLOR } from "../utils/color";
 
+import app from "../../firebase";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
+
 export default function LoginScreen({ navigation }) {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  
+  const auth = getAuth(app);
+
+  const handleSignUp = () => {
+    createUserWithEmailAndPassword(auth, email, password)
+      .then((userCredential) => {
+        // Signed in
+        const user = userCredential.user;
+        console.log(userCredential);
+        // ...
+      })
+      .catch((error) => {
+        const errorCode = error.code;
+        const errorMessage = error.message;
+        console.log(errorCode, errorMessage);
+        // ..
+      });
+  };
+
+  const handleLogin = () => {
+    signInWithEmailAndPassword(auth, email, password)
+    .then((userCredential) => {
+      // Signed in
+      const user = userCredential.user;
+      console.log(user);
+      // ...
+    })
+    .catch((error) => {
+      const errorCode = error.code;
+      const errorMessage = error.message;
+      console.log(errorCode, error3Message);
+      // ..
+    });
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={{ paddingHorizontal: 25 }}>
@@ -41,6 +76,8 @@ export default function LoginScreen({ navigation }) {
             ></MaterialIcons>
           }
           keyboardType={"email-address"}
+          value={email}
+          onChange={(text) => setEmail(text)}
         ></InputField>
 
         <InputField
@@ -54,10 +91,18 @@ export default function LoginScreen({ navigation }) {
           }
           inputType={"password"}
           fieldButtonLabel={"Forgot?"}
-          fieldButtonFunction={() => {}} 
+          fieldButtonFunction={() => {}}
+          value={password}
+          onChange={(text) => setPassword(text)}
         ></InputField>
 
-        <CustomButton label={"Login"} onPresss={() => {navigation.navigate("TabNavigator", { screen: 'Home' })}}></CustomButton>
+        <CustomButton
+          label={"Login"}
+          onPresss={() => {
+            // handleLogin();
+            navigation.navigate("TabNavigator", { screen: "Home" });
+          }}
+        ></CustomButton>
 
         <Text style={styles.loginWithText}>Or, login with...</Text>
 

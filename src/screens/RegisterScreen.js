@@ -27,6 +27,14 @@ export default function RegisterScreen({ navigation }) {
   const [date, setDate] = useState(new Date());
   const [showPicker, setShowPicker] = useState(false);
 
+  const [regiterData, setRegiterData] = useState({
+    email: "",
+    password: "",
+    fullName: "",
+    dob: "",
+    phone: "",	
+  })
+
   // EVENT
   const onChangeDatePicker = (event, selectedDate) => {
     const currentDate = selectedDate || date;
@@ -88,6 +96,8 @@ export default function RegisterScreen({ navigation }) {
           icon={
             <Ionicons name="person-outline" size={20} color={"#666"}></Ionicons>
           }
+          value={regiterData.fullName}
+          onChange={(text) => setRegiterData({...regiterData, fullName: text})}
         ></InputField>
 
         <InputField
