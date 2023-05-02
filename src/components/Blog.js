@@ -13,17 +13,27 @@ const Blog = ({
   sourceImg,
   showUser = true,
   showActions = false,
+  navigation
 }) => {
+
+  const navigateToDetails = () => {
+    navigation.navigate("DetailPlaceScreen", { name: "Fuk that shit" })
+  }
+
   return (
     <View style={styles.container}>
-      <Image style={styles.img} resizeMode="cover" source={sourceImg}></Image>
+      <TouchableOpacity style={styles.img} onPress={navigateToDetails}>
+        <Image style={styles.img} resizeMode="cover" source={sourceImg}></Image>
+      </TouchableOpacity>
       <View style={styles.content}>
-        <Text style={styles.title}>{name}</Text>
+        <TouchableOpacity onPress={navigateToDetails}>
+          <Text style={styles.title}>{name}</Text>
+        </TouchableOpacity>
         <View>
           <RatingStar
             initialRating={rating}
             maxRating={5}
-            onRatingChange={() => {}}
+            onRatingChange={() => { }}
           ></RatingStar>
 
           {showUser && (
