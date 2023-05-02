@@ -22,6 +22,11 @@ import CustomButton from "../components/CustomButton";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { MAIN_COLOR } from "../utils/color";
 
+import { auth, db } from "../../firebase";
+import { setDoc, doc } from "@firebase/firestore";
+import { createUserWithEmailAndPassword } from "@firebase/auth";
+import { Toast } from "react-native-toast-message/lib/src/Toast";
+
 export default function RegisterScreen({ navigation }) {
   // STATE
   const [date, setDate] = useState(new Date());
@@ -29,17 +34,19 @@ export default function RegisterScreen({ navigation }) {
 
   const [regiterData, setRegiterData] = useState({
     email: "",
-    password: "",
     fullName: "",
-    dob: "",
-    phone: "",	
-  })
+    dob: new Date().toLocaleDateString(),
+    password: "",
+    cfPassword: "",
+  });
+
 
   // EVENT
   const onChangeDatePicker = (event, selectedDate) => {
     const currentDate = selectedDate || date;
     setShowPicker(false);
     setDate(currentDate);
+    setRegiterData({ ...regiterData, dob: formatDate(currentDate) });
   };
 
   // FUNCTION
@@ -51,8 +58,71 @@ export default function RegisterScreen({ navigation }) {
     // Format the date in "dd/mm/yy" format
     const formattedDate = `${day}/${month}/${year}`;
     return formattedDate;
-  }
+  };
 
+  const saveUserToFireStore = (id) => {
+    const docRef = doc(db, "user", id);
+    const data = {
+      fullName: regiterData.fullName,
+      dob: regiterData.dob,
+      email: regiterData.email,
+    };
+    setDoc(docRef, data).then(() => {
+      Toast.show({
+        type: "success",
+        text1: "Register successfully",
+      });
+      navigation.goBack();
+    });
+  };
+
+  const handleSignUp = () => {
+    if (regiterData.password.length < 6) {
+      Toast.show({
+        type: "error",
+        text1: "Password has at least 6 characters",
+      });
+      return;
+    }
+    if (regiterData.password !== regiterData.cfPassword) {
+      Toast.show({
+        type: "error",
+        text1: "Confirm Password does not match your password",
+      });
+      return;
+    }
+    createUserWithEmailAndPassword(
+      auth,
+      regiterData.email,
+      regiterData.password
+    )
+      .then((userCredential) => {
+        // Signed in
+        const user = userCredential.user;
+        saveUserToFireStore(user.uid);
+      })
+      .catch((error) => {
+        if (error.code === "auth/email-already-in-use") {
+          Toast.show({
+            type: "error",
+            text1: "That email address is already in use!",
+          });
+        }
+
+        if (error.code === "auth/invalid-email") {
+          Toast.show({
+            type: "error",
+            text1: "That email address is invalid!",
+          });
+        }
+      });
+  };
+
+  const activeBtnRegister =
+    !regiterData.fullName ||
+    !regiterData.email ||
+    !regiterData.password ||
+    !regiterData.cfPassword;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -97,7 +167,9 @@ export default function RegisterScreen({ navigation }) {
             <Ionicons name="person-outline" size={20} color={"#666"}></Ionicons>
           }
           value={regiterData.fullName}
-          onChange={(text) => setRegiterData({...regiterData, fullName: text})}
+          onChange={(text) =>
+            setRegiterData({ ...regiterData, fullName: text })
+          }
         ></InputField>
 
         <InputField
@@ -110,6 +182,8 @@ export default function RegisterScreen({ navigation }) {
             ></MaterialIcons>
           }
           keyboardType={"email-address"}
+          value={regiterData.email}
+          onChange={(text) => setRegiterData({ ...regiterData, email: text })}
         ></InputField>
 
         <InputField
@@ -122,6 +196,10 @@ export default function RegisterScreen({ navigation }) {
             ></Ionicons>
           }
           inputType={"password"}
+          value={regiterData.password}
+          onChange={(text) =>
+            setRegiterData({ ...regiterData, password: text })
+          }
         ></InputField>
 
         <InputField
@@ -134,13 +212,17 @@ export default function RegisterScreen({ navigation }) {
             ></Ionicons>
           }
           inputType={"password"}
+          value={regiterData.cfPassword}
+          onChange={(text) =>
+            setRegiterData({ ...regiterData, cfPassword: text })
+          }
         ></InputField>
 
         <View style={styles.viewDatePicker}>
           <Ionicons name="calendar-outline" size={20} color={"#666"}></Ionicons>
           <TouchableOpacity onPress={() => setShowPicker(true)}>
             <Text style={{ color: "#666", marginLeft: 5 }}>
-              {date ? formatDate(date) :"Date of Birth"}
+              {date ? formatDate(date) : "Date of Birth"}
             </Text>
           </TouchableOpacity>
         </View>
@@ -155,7 +237,11 @@ export default function RegisterScreen({ navigation }) {
           ></DateTimePicker>
         )}
 
-        <CustomButton label={"Register"} onPresss={() => {}}></CustomButton>
+        <CustomButton
+          label={"Register"}
+          onPresss={() => handleSignUp()}
+          disabled={activeBtnRegister}
+        ></CustomButton>
 
         <View
           style={{

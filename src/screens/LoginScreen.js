@@ -13,46 +13,44 @@ import CustomButton from "../components/CustomButton";
 import InputField from "../components/InputField";
 import { MAIN_COLOR } from "../utils/color";
 
-import app from "../../firebase";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
+import Toast from "react-native-toast-message";
+
+import {
+  signInWithEmailAndPassword,
+} from "firebase/auth";
+
+import { useDispatch } from "react-redux";
+import { authSliceActions } from "../store/authSlice";
+import { auth } from "../../firebase";
 
 export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  
-  const auth = getAuth(app);
 
-  const handleSignUp = () => {
-    createUserWithEmailAndPassword(auth, email, password)
+  const dispatch = useDispatch();
+
+  const handleLogin = () => {
+    signInWithEmailAndPassword(auth, email, password)
       .then((userCredential) => {
         // Signed in
         const user = userCredential.user;
-        console.log(userCredential);
+        dispatch(
+          authSliceActions.setUser({
+            uid: user.uid,
+          })
+        );
+        navigation.navigate("TabNavigator", { screen: "Home" });
         // ...
       })
       .catch((error) => {
         const errorCode = error.code;
-        const errorMessage = error.message;
-        console.log(errorCode, errorMessage);
-        // ..
+        let textError = errorCode.split("/")[1].split("-").join(" ");
+        Toast.show({
+          type: "error",
+          text1: `Login failed: ` + textError,
+        });
       });
   };
-
-  const handleLogin = () => {
-    signInWithEmailAndPassword(auth, email, password)
-    .then((userCredential) => {
-      // Signed in
-      const user = userCredential.user;
-      console.log(user);
-      // ...
-    })
-    .catch((error) => {
-      const errorCode = error.code;
-      const errorMessage = error.message;
-      console.log(errorCode, error3Message);
-      // ..
-    });
-  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -99,8 +97,7 @@ export default function LoginScreen({ navigation }) {
         <CustomButton
           label={"Login"}
           onPresss={() => {
-            // handleLogin();
-            navigation.navigate("TabNavigator", { screen: "Home" });
+            handleLogin();
           }}
         ></CustomButton>
 
