@@ -14,6 +14,8 @@ import Ionicons from "react-native-vector-icons/Ionicons";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import { MAIN_COLOR } from "../utils/color";
 import Blog from "../components/Blog";
+import { useSelector } from "react-redux";
+import { userSelector } from "../store/authSlice";
 
 const MyBlog = () => {
   const listBlog = [
@@ -55,10 +57,7 @@ const MyBlog = () => {
     },
   ];
 
-  const user = {
-    name: "Binh Beo Beu",
-    image: require("../assets/images/misc/user.png"),
-  };
+  const user = useSelector(userSelector);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -80,9 +79,9 @@ const MyBlog = () => {
           <Image
             style={styles.imgUser}
             resizeMode="cover"
-            source={user.image}
+            source={{uri: user.image}}
           ></Image>
-          <Text style={styles.userText}>{user.name}</Text>
+          <Text style={styles.userText}>{user.fullName}</Text>
         </View>
         <TouchableOpacity
           style={{ flexDirection: "row", alignItems: "center", gap: 2 }}
@@ -188,5 +187,6 @@ const styles = StyleSheet.create({
   imgUser: {
     width: 36,
     height: 36,
+    borderRadius: 36/2
   },
 });

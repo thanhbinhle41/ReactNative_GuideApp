@@ -11,18 +11,34 @@ import {
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { MAIN_COLOR } from "../utils/color";
 
+import { useSelector } from "react-redux";
+import { userSelector } from "../store/authSlice";
+
 const ProfileScreen = () => {
+  // SELECTOR
+  const user = useSelector(userSelector);
+
+  const formatNickName = (fullName) => {
+    let initials = "";
+    const nameArray = fullName.split(" ");
+
+    for (let i = 0; i < nameArray.length; i++) {
+      initials += nameArray[i].charAt(0).toUpperCase();
+    }
+    return initials;
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.userInfoSection}>
         <View style={{ flexDirection: "row", marginTop: 15 }}>
           <Avatar.Image
-            source={require('../assets/images/misc/pika.png')}
+            source={{uri: user.image}}
             size={80}
           />
           <View style={{ marginLeft: 20 }}>
-            <Title style={styles.title}>Binh Beo Beu</Title>
-            <Caption style={styles.caption}>BBB</Caption>
+            <Title style={styles.title}>{user.fullName}</Title>
+            <Caption style={styles.caption}>{formatNickName(user.fullName)}</Caption>
           </View>
         </View>
       </View>
@@ -31,28 +47,33 @@ const ProfileScreen = () => {
         <View style={styles.row}>
           <Icon name="map-marker-radius" color={"#777777"} size={20} />
           <Text style={{ color: "#777777", marginLeft: 20 }}>
-            Ha Noi, Viet Nam
+            {`${user.city}, ${user.country}`}
           </Text>
         </View>
 
         <View style={styles.row}>
           <Icon name="phone" color={"#777777"} size={20} />
-          <Text style={{ color: "#777777", marginLeft: 20 }}>0976466331</Text>
+          <Text style={{ color: "#777777", marginLeft: 20 }}>{user.phone}</Text>
         </View>
 
         <View style={styles.row}>
           <Icon name="email" color={"#777777"} size={20} />
           <Text style={{ color: "#777777", marginLeft: 20 }}>
-            thanhbinhle41@gmail.com
+            {user.email}
           </Text>
         </View>
       </View>
 
       <View style={styles.infoBoxWrapper}>
-        <View style={[styles.infoBox, {
-          borderRightColor: "#dddddd",
-          borderRightWidth: 1
-        }]}>
+        <View
+          style={[
+            styles.infoBox,
+            {
+              borderRightColor: "#dddddd",
+              borderRightWidth: 1,
+            },
+          ]}
+        >
           <Title>$140</Title>
           <Caption>Wallet</Caption>
         </View>
@@ -63,30 +84,34 @@ const ProfileScreen = () => {
       </View>
 
       <View style={styles.menuWrapper}>
-        <TouchableRipple onPress={() => { }}>
+        <TouchableRipple onPress={() => {}}>
           <View style={styles.menuItem}>
             <Icon name="heart-outline" color={MAIN_COLOR} size={25} />
             <Text style={styles.menuItemText}>Your Favorites</Text>
           </View>
         </TouchableRipple>
 
-        <TouchableRipple onPress={() => { }}>
+        <TouchableRipple onPress={() => {}}>
           <View style={styles.menuItem}>
             <Icon name="credit-card" color={MAIN_COLOR} size={25} />
             <Text style={styles.menuItemText}>Payment</Text>
           </View>
         </TouchableRipple>
 
-        <TouchableRipple onPress={() => { }}>
+        <TouchableRipple onPress={() => {}}>
           <View style={styles.menuItem}>
             <Icon name="share-outline" color={MAIN_COLOR} size={25} />
             <Text style={styles.menuItemText}>Tell your friends</Text>
           </View>
         </TouchableRipple>
 
-        <TouchableRipple onPress={() => { }}>
+        <TouchableRipple onPress={() => {}}>
           <View style={styles.menuItem}>
-            <Icon name="account-settings-outline" color={MAIN_COLOR} size={25} />
+            <Icon
+              name="account-settings-outline"
+              color={MAIN_COLOR}
+              size={25}
+            />
             <Text style={styles.menuItemText}>Settings</Text>
           </View>
         </TouchableRipple>

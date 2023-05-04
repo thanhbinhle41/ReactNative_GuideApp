@@ -87,7 +87,7 @@ const DetailPlaceScreen = ({ route, navigation }) => {
             sliderWidth={windowWidth}
             itemWidth={300}
             loop={true}
-            autoplay={false}
+            autoplay={true}
             autoplayInterval={5000}
           />
         </View>

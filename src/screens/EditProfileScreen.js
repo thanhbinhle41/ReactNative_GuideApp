@@ -18,17 +18,18 @@ import BottomSheet from "reanimated-bottom-sheet";
 import Animated from "react-native-reanimated";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Toast } from "react-native-toast-message/lib/src/Toast";
-import * as ImagePicker from 'expo-image-picker';
+import * as ImagePicker from "expo-image-picker";
 
 import { db, storage } from "../../firebase";
-import { useSelector } from "react-redux";
-import { userSelector } from "../store/authSlice";
+import { useDispatch, useSelector } from "react-redux";
+import { authSliceActions, userSelector } from "../store/authSlice";
 
-import { doc, getDoc, updateDoc } from "@firebase/firestore";
+import { doc, updateDoc } from "@firebase/firestore";
 import { getDownloadURL, ref, uploadBytesResumable } from "@firebase/storage";
 import { DEFAULT_IMAGE_URL } from "../utils/constant";
 
 const EditProfileScreen = ({ navigation }) => {
+  const dispatch = useDispatch();
   // SELECTOR
   const user = useSelector(userSelector);
   // USE STATE
@@ -38,34 +39,14 @@ const EditProfileScreen = ({ navigation }) => {
     country: "",
     city: "",
     dob: new Date().toLocaleDateString(),
-    image: DEFAULT_IMAGE_URL
+    image: DEFAULT_IMAGE_URL,
   });
   const [date, setDate] = useState(new Date());
   const [showPicker, setShowPicker] = useState(false);
 
   useEffect(() => {
-    const loadData = async () => {
-      const docRef = doc(db, "user", user.uid);
-      const docSnap = await getDoc(docRef);
-
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        const profileData = {
-          fullName: data?.fullName,
-          dob: data?.dob,
-          phone: data?.phone ? data?.phone : "",
-          country: data?.country ? data?.country : "",
-          city: data?.city ? data?.city : "",
-          image: data?.image ? data?.image : DEFAULT_IMAGE_URL,
-        };
-        setProfileData(profileData);
-      } else {
-        console.log("No such user!");
-      }
-    };
-
-    loadData();
-  }, []);
+    setProfileData(user);
+  }, [user]);
 
   // FUNCTION
   const formatDate = (date) => {
@@ -78,14 +59,13 @@ const EditProfileScreen = ({ navigation }) => {
     return formattedDate;
   };
 
-  const upLoadImgFireBase = async (uri) => {
+  const uploadImgFireBase = async (uri) => {
     const response = await fetch(uri);
     const blob = await response.blob();
-    const fileName = uri.substring(uri.lastIndexOf('/') + 1);
+    const fileName = uri.substring(uri.lastIndexOf("/") + 1);
     const storageRef = ref(storage, `/user/${fileName}`);
     const uploadTask = uploadBytesResumable(storageRef, blob);
 
-    let urlRes = DEFAULT_IMAGE_URL;
     uploadTask.on(
       "state_changed",
       (snapshot) => {
@@ -97,39 +77,22 @@ const EditProfileScreen = ({ navigation }) => {
         console.log(percent);
       },
       (err) => console.log(err),
-      // async () => {
-      //   // download url
-      //   await getDownloadURL(uploadTask.snapshot.ref).then((url) => {
-      //     urlRes = url;
-      //     console.log(url, "from download url")
-      //   });
-      // }
+      async () => {
+        // download url
+        await getDownloadURL(uploadTask.snapshot.ref).then((url) => {
+          const data = { ...user, ...profileData };
+          data.image = url;
+          uploadDataProfile(data);
+        });
+      }
     );
-    const alo = await getDownloadURL(uploadTask.snapshot.ref).then((url) => {
-      return url
-    });
-    console.log(alo)
-    return urlRes;
-  }
+  };
 
-  // EVENT
-  const onSubmitBtn = async () => {
-    const data = { ...profileData }
-    if (!data.fullName) {
-      Toast.show({
-        type: "error",
-        text1: `Full name is required`,
-      });
-      return;
-    }
-    if (data.image !== DEFAULT_IMAGE_URL) {
-      const tmpImgUrl = await upLoadImgFireBase(data.image);
-      data.image = tmpImgUrl;
-      console.log(tmpImgUrl)
-    }
-    const userRef = doc(db, "user", user.uid);
+  const uploadDataProfile = async (data) => {
+    const userRef = doc(db, "user", data.uid);
     await updateDoc(userRef, data)
       .then(() => {
+        dispatch(authSliceActions.setUser(data));
         Toast.show({
           type: "success",
           text1: `Update profile successfully!`,
@@ -140,7 +103,24 @@ const EditProfileScreen = ({ navigation }) => {
           type: "error",
           text1: `Something went wrong`,
         });
+        console.log(error);
       });
+  };
+
+  // EVENT
+  const onSubmitBtn = async () => {
+    if (!profileData.fullName) {
+      Toast.show({
+        type: "error",
+        text1: `Full name is required`,
+      });
+      return;
+    }
+    if (profileData.image !== user.image) {
+      await uploadImgFireBase(profileData.image);
+    } else {
+      uploadDataProfile({ ...user, ...profileData});
+    }
   };
 
   const onChangeDatePicker = (_, selectedDate) => {
@@ -162,15 +142,15 @@ const EditProfileScreen = ({ navigation }) => {
     const result = await ImagePicker.launchCameraAsync();
 
     if (!result.canceled) {
-      setProfileData({ ...profileData, image: result.assets[0].uri })
-      bs.current.snapTo(1)
+      setProfileData({ ...profileData, image: result.assets[0].uri });
+      bs.current.snapTo(1);
     }
-
   };
 
   const choosePhotoFromLibrary = async () => {
-    // Ask the user for the permission to access the media library 
-    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    // Ask the user for the permission to access the media library
+    const permissionResult =
+      await ImagePicker.requestMediaLibraryPermissionsAsync();
 
     if (permissionResult.granted === false) {
       alert("You've refused to allow this appp to access your photos!");
@@ -180,10 +160,9 @@ const EditProfileScreen = ({ navigation }) => {
     const result = await ImagePicker.launchImageLibraryAsync();
 
     if (!result.canceled) {
-      setProfileData({ ...profileData, image: result.assets[0].uri })
-      bs.current.snapTo(1)
+      setProfileData({ ...profileData, image: result.assets[0].uri });
+      bs.current.snapTo(1);
     }
-
   };
 
   const renderInner = () => (
@@ -192,10 +171,16 @@ const EditProfileScreen = ({ navigation }) => {
         <Text style={styles.panelTitle}>Upload Photo</Text>
         <Text style={styles.panelSubtitle}>Choose Your Profile Picture</Text>
       </View>
-      <TouchableOpacity style={styles.panelButton} onPress={takePhotoFromCamera}>
+      <TouchableOpacity
+        style={styles.panelButton}
+        onPress={takePhotoFromCamera}
+      >
         <Text style={styles.panelButtonTitle}>Take Photo</Text>
       </TouchableOpacity>
-      <TouchableOpacity style={styles.panelButton} onPress={choosePhotoFromLibrary}>
+      <TouchableOpacity
+        style={styles.panelButton}
+        onPress={choosePhotoFromLibrary}
+      >
         <Text style={styles.panelButtonTitle}>Choose From Library</Text>
       </TouchableOpacity>
       <TouchableOpacity

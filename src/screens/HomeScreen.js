@@ -3,13 +3,13 @@ import React, { useState } from "react";
 
 import { SafeAreaView } from "react-native-safe-area-context";
 import { FlatList, TextInput } from "react-native-gesture-handler";
-// import { ListItem } from 'react-native-elements'
 
 import Ionicons from "react-native-vector-icons/Ionicons";
 import { MAIN_COLOR } from "../utils/color";
 import Blog from "../components/Blog";
 import { useSelector } from "react-redux";
 import { userSelector } from "../store/authSlice";
+
 
 const HomeScreen = ({ navigation }) => {
   const listTabFilter = [
@@ -66,7 +66,6 @@ const HomeScreen = ({ navigation }) => {
   // selector
   const user = useSelector(userSelector);
 
-  console.log(user);
 
   return (
     <SafeAreaView style={styles.container}>

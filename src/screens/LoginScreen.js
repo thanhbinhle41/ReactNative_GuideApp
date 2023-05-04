@@ -21,7 +21,9 @@ import {
 
 import { useDispatch } from "react-redux";
 import { authSliceActions } from "../store/authSlice";
-import { auth } from "../../firebase";
+
+import { doc, getDoc } from "@firebase/firestore";
+import { auth, db } from "../../firebase";
 
 export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState("");
@@ -29,19 +31,37 @@ export default function LoginScreen({ navigation }) {
 
   const dispatch = useDispatch();
 
+  const loadData = async (uid, email) => {
+    const docRef = doc(db, "user", uid);
+    const docSnap = await getDoc(docRef);
+
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      const userData = {
+        uid: uid,
+        email: email,
+        fullName: data?.fullName,
+        dob: data?.dob,
+        phone: data?.phone ? data?.phone : "",
+        country: data?.country ? data?.country : "",
+        city: data?.city ? data?.city : "",
+        image: data?.image ? data?.image : DEFAULT_IMAGE_URL,
+      };
+      dispatch(authSliceActions.setUser(userData))
+    } 
+    else {
+      console.log("No such user!");
+    }
+  };
+
   const handleLogin = () => {
-    // navigation.navigate("TabNavigator", { screen: "Home" });
     signInWithEmailAndPassword(auth, email, password)
-      .then((userCredential) => {
+      .then(async (userCredential) => {
         // Signed in
         const user = userCredential.user;
-        dispatch(
-          authSliceActions.setUser({
-            uid: user.uid,
-          })
-        );
+        await loadData(user.uid, user.email);
+
         navigation.navigate("TabNavigator", { screen: "Home" });
-        // ...
       })
       .catch((error) => {
         const errorCode = error.code;
