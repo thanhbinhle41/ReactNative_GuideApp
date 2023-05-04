@@ -1,0 +1,1 @@
+export const DEFAULT_IMAGE_URL = "https://firebasestorage.googleapis.com/v0/b/guide-app-6b862.appspot.com/o/static%2Fpika.png?alt=media&token=941dc909-b791-40ae-aec0-22fb39510ddd"

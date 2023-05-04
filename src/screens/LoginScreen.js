@@ -30,6 +30,7 @@ export default function LoginScreen({ navigation }) {
   const dispatch = useDispatch();
 
   const handleLogin = () => {
+    // navigation.navigate("TabNavigator", { screen: "Home" });
     signInWithEmailAndPassword(auth, email, password)
       .then((userCredential) => {
         // Signed in

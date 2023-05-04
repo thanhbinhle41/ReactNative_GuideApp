@@ -18,12 +18,15 @@ import BottomSheet from "reanimated-bottom-sheet";
 import Animated from "react-native-reanimated";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Toast } from "react-native-toast-message/lib/src/Toast";
+import * as ImagePicker from 'expo-image-picker';
 
-import { db } from "../../firebase";
+import { db, storage } from "../../firebase";
 import { useSelector } from "react-redux";
 import { userSelector } from "../store/authSlice";
 
 import { doc, getDoc, updateDoc } from "@firebase/firestore";
+import { getDownloadURL, ref, uploadBytesResumable } from "@firebase/storage";
+import { DEFAULT_IMAGE_URL } from "../utils/constant";
 
 const EditProfileScreen = ({ navigation }) => {
   // SELECTOR
@@ -35,6 +38,7 @@ const EditProfileScreen = ({ navigation }) => {
     country: "",
     city: "",
     dob: new Date().toLocaleDateString(),
+    image: DEFAULT_IMAGE_URL
   });
   const [date, setDate] = useState(new Date());
   const [showPicker, setShowPicker] = useState(false);
@@ -52,6 +56,7 @@ const EditProfileScreen = ({ navigation }) => {
           phone: data?.phone ? data?.phone : "",
           country: data?.country ? data?.country : "",
           city: data?.city ? data?.city : "",
+          image: data?.image ? data?.image : DEFAULT_IMAGE_URL,
         };
         setProfileData(profileData);
       } else {
@@ -73,29 +78,69 @@ const EditProfileScreen = ({ navigation }) => {
     return formattedDate;
   };
 
+  const upLoadImgFireBase = async (uri) => {
+    const response = await fetch(uri);
+    const blob = await response.blob();
+    const fileName = uri.substring(uri.lastIndexOf('/') + 1);
+    const storageRef = ref(storage, `/user/${fileName}`);
+    const uploadTask = uploadBytesResumable(storageRef, blob);
+
+    let urlRes = DEFAULT_IMAGE_URL;
+    uploadTask.on(
+      "state_changed",
+      (snapshot) => {
+        const percent = Math.round(
+          (snapshot.bytesTransferred / snapshot.totalBytes) * 100
+        );
+
+        // update progress
+        console.log(percent);
+      },
+      (err) => console.log(err),
+      // async () => {
+      //   // download url
+      //   await getDownloadURL(uploadTask.snapshot.ref).then((url) => {
+      //     urlRes = url;
+      //     console.log(url, "from download url")
+      //   });
+      // }
+    );
+    const alo = await getDownloadURL(uploadTask.snapshot.ref).then((url) => {
+      return url
+    });
+    console.log(alo)
+    return urlRes;
+  }
+
   // EVENT
   const onSubmitBtn = async () => {
-    console.log(profileData);
-    if (!profileData.fullName) {
+    const data = { ...profileData }
+    if (!data.fullName) {
       Toast.show({
         type: "error",
         text1: `Full name is required`,
       });
       return;
     }
+    if (data.image !== DEFAULT_IMAGE_URL) {
+      const tmpImgUrl = await upLoadImgFireBase(data.image);
+      data.image = tmpImgUrl;
+      console.log(tmpImgUrl)
+    }
     const userRef = doc(db, "user", user.uid);
-    await updateDoc(userRef, profileData).then(() => {
-      Toast.show({
-        type: "success",
-        text1: `Update profile successfully!`,
+    await updateDoc(userRef, data)
+      .then(() => {
+        Toast.show({
+          type: "success",
+          text1: `Update profile successfully!`,
+        });
+      })
+      .catch((error) => {
+        Toast.show({
+          type: "error",
+          text1: `Something went wrong`,
+        });
       });
-    })
-    .catch((error) => {
-      Toast.show({
-        type: "error",
-        text1: `Something went wrong`,
-      });
-    });
   };
 
   const onChangeDatePicker = (_, selectedDate) => {
@@ -105,9 +150,41 @@ const EditProfileScreen = ({ navigation }) => {
     setProfileData({ ...profileData, dob: formatDate(currentDate) });
   };
 
-  const takePhotoFromCamera = () => {};
+  const takePhotoFromCamera = async () => {
+    // Ask the user for the permission to access the camera
+    const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
 
-  const choosePhotoFromLibrary = () => {};
+    if (permissionResult.granted === false) {
+      alert("You've refused to allow this appp to access your camera!");
+      return;
+    }
+
+    const result = await ImagePicker.launchCameraAsync();
+
+    if (!result.canceled) {
+      setProfileData({ ...profileData, image: result.assets[0].uri })
+      bs.current.snapTo(1)
+    }
+
+  };
+
+  const choosePhotoFromLibrary = async () => {
+    // Ask the user for the permission to access the media library 
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+    if (permissionResult.granted === false) {
+      alert("You've refused to allow this appp to access your photos!");
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync();
+
+    if (!result.canceled) {
+      setProfileData({ ...profileData, image: result.assets[0].uri })
+      bs.current.snapTo(1)
+    }
+
+  };
 
   const renderInner = () => (
     <View style={styles.panel}>
@@ -115,10 +192,10 @@ const EditProfileScreen = ({ navigation }) => {
         <Text style={styles.panelTitle}>Upload Photo</Text>
         <Text style={styles.panelSubtitle}>Choose Your Profile Picture</Text>
       </View>
-      <TouchableOpacity style={styles.panelButton} onPress={() => {}}>
+      <TouchableOpacity style={styles.panelButton} onPress={takePhotoFromCamera}>
         <Text style={styles.panelButtonTitle}>Take Photo</Text>
       </TouchableOpacity>
-      <TouchableOpacity style={styles.panelButton} onPress={() => {}}>
+      <TouchableOpacity style={styles.panelButton} onPress={choosePhotoFromLibrary}>
         <Text style={styles.panelButtonTitle}>Choose From Library</Text>
       </TouchableOpacity>
       <TouchableOpacity
@@ -159,7 +236,7 @@ const EditProfileScreen = ({ navigation }) => {
           opacity: Animated.add(0.1, Animated.multiply(fall, 1.0)),
         }}
       >
-        <View style={{ alignItems: "center" }}>
+        <View style={{ alignItems: "center", marginBottom: 16 }}>
           <TouchableOpacity onPress={() => bs.current.snapTo(0)}>
             <View
               style={{
@@ -171,7 +248,7 @@ const EditProfileScreen = ({ navigation }) => {
               }}
             >
               <ImageBackground
-                source={require("../assets/images/misc/pika.png")}
+                source={{ uri: profileData.image }}
                 style={{ height: 100, width: 100 }}
                 imageStyle={{ borderRadius: 15 }}
               >
@@ -199,10 +276,6 @@ const EditProfileScreen = ({ navigation }) => {
               </ImageBackground>
             </View>
           </TouchableOpacity>
-
-          <Text style={{ marginTop: 10, fontSize: 18, fontWeight: "bold" }}>
-            {profileData.fullName}
-          </Text>
         </View>
 
         <View style={styles.action}>
