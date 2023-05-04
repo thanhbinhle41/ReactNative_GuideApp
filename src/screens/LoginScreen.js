@@ -16,7 +16,9 @@ import { MAIN_COLOR } from "../utils/color";
 import Toast from "react-native-toast-message";
 
 import {
+  GoogleAuthProvider,
   signInWithEmailAndPassword,
+  signInWithPopup,
 } from "firebase/auth";
 
 import { useDispatch } from "react-redux";
@@ -47,9 +49,8 @@ export default function LoginScreen({ navigation }) {
         city: data?.city ? data?.city : "",
         image: data?.image ? data?.image : DEFAULT_IMAGE_URL,
       };
-      dispatch(authSliceActions.setUser(userData))
-    } 
-    else {
+      dispatch(authSliceActions.setUser(userData));
+    } else {
       console.log("No such user!");
     }
   };
@@ -71,6 +72,13 @@ export default function LoginScreen({ navigation }) {
           text1: `Login failed: ` + textError,
         });
       });
+  };
+
+  const signInWithGoogle = () => {
+    const provider = new GoogleAuthProvider();
+    
+
+    console.log(provider, auth);
   };
 
   return (
@@ -131,7 +139,10 @@ export default function LoginScreen({ navigation }) {
             marginBottom: 30,
           }}
         >
-          <TouchableOpacity onPress={() => {}} style={styles.otherLoginIcon}>
+          <TouchableOpacity
+            onPress={signInWithGoogle}
+            style={styles.otherLoginIcon}
+          >
             <GoogleSVG height={24} width={24}></GoogleSVG>
           </TouchableOpacity>
 
