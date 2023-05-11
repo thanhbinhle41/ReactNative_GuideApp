@@ -56,22 +56,23 @@ export default function LoginScreen({ navigation }) {
   };
 
   const handleLogin = () => {
-    signInWithEmailAndPassword(auth, email, password)
-      .then(async (userCredential) => {
-        // Signed in
-        const user = userCredential.user;
-        await loadData(user.uid, user.email);
+    navigation.navigate("TabNavigator", { screen: "Home" });
+    // signInWithEmailAndPassword(auth, email, password)
+    //   .then(async (userCredential) => {
+    //     // Signed in
+    //     const user = userCredential.user;
+    //     await loadData(user.uid, user.email);
 
-        navigation.navigate("TabNavigator", { screen: "Home" });
-      })
-      .catch((error) => {
-        const errorCode = error.code;
-        let textError = errorCode.split("/")[1].split("-").join(" ");
-        Toast.show({
-          type: "error",
-          text1: `Login failed: ` + textError,
-        });
-      });
+    //     navigation.navigate("TabNavigator", { screen: "Home" });
+    //   })
+    //   .catch((error) => {
+    //     const errorCode = error.code;
+    //     let textError = errorCode.split("/")[1].split("-").join(" ");
+    //     Toast.show({
+    //       type: "error",
+    //       text1: `Login failed: ` + textError,
+    //     });
+    //   });
   };
 
   const signInWithGoogle = () => {
