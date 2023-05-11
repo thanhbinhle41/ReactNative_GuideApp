@@ -11,6 +11,8 @@ import Toast from "react-native-toast-message";
 import { Provider } from "react-redux";
 import { store } from "./src/store/store";
 
+import "expo-dev-client"
+
 const Stack = createNativeStackNavigator();
 
 function App() {

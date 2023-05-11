@@ -2,6 +2,7 @@
   "expo": {
     "name": "GuideApp",
     "slug": "GuideApp",
+    "plugins": ["@react-native-google-signin/google-signin"],
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
@@ -17,11 +18,17 @@
       "supportsTablet": true
     },
     "android": {
+      "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.binhbeobeu.GuideApp"
     },
-    "web": {
+    "web": {},
+    "extra": {
+      "eas": {
+        "projectId": "73f06c3d-f866-4ba7-a63c-9acf98d57479"
+      }
     }
   }
 }

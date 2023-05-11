@@ -15,17 +15,23 @@ import { MAIN_COLOR } from "../utils/color";
 
 import Toast from "react-native-toast-message";
 
-import {
-  GoogleAuthProvider,
-  signInWithEmailAndPassword,
-  signInWithPopup,
-} from "firebase/auth";
+import { signInWithEmailAndPassword } from "firebase/auth";
 
 import { useDispatch } from "react-redux";
 import { authSliceActions } from "../store/authSlice";
 
 import { doc, getDoc } from "@firebase/firestore";
-import { auth, db } from "../../firebase";
+import { authFirebase, db } from "../../firebase";
+
+import {
+  GoogleSignin,
+  statusCodes,
+} from "@react-native-google-signin/google-signin";
+
+GoogleSignin.configure({
+  webClientId:
+    "306671209005-amcfb9s15kf6lhnne74r5hu99fvojbd3.apps.googleusercontent.com",
+});
 
 export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState("");
@@ -56,30 +62,43 @@ export default function LoginScreen({ navigation }) {
   };
 
   const handleLogin = () => {
-    navigation.navigate("TabNavigator", { screen: "Home" });
-    // signInWithEmailAndPassword(auth, email, password)
-    //   .then(async (userCredential) => {
-    //     // Signed in
-    //     const user = userCredential.user;
-    //     await loadData(user.uid, user.email);
+    // navigation.navigate("TabNavigator", { screen: "Home" });
+    signInWithEmailAndPassword(authFirebase, email, password)
+      .then(async (userCredential) => {
+        // Signed in
+        const user = userCredential.user;
+        await loadData(user.uid, user.email);
 
-    //     navigation.navigate("TabNavigator", { screen: "Home" });
-    //   })
-    //   .catch((error) => {
-    //     const errorCode = error.code;
-    //     let textError = errorCode.split("/")[1].split("-").join(" ");
-    //     Toast.show({
-    //       type: "error",
-    //       text1: `Login failed: ` + textError,
-    //     });
-    //   });
+        navigation.navigate("TabNavigator", { screen: "Home" });
+      })
+      .catch((error) => {
+        const errorCode = error.code;
+        let textError = errorCode.split("/")[1].split("-").join(" ");
+        Toast.show({
+          type: "error",
+          text1: `Login failed: ` + textError,
+        });
+      });
   };
 
-  const signInWithGoogle = () => {
-    const provider = new GoogleAuthProvider();
-    
+  const signInWithGoogle = async () => {
+    // Check if your device supports Google Play
+    await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
+    // Get the users ID token
+    const { idToken } = await GoogleSignin.signIn();
 
-    console.log(provider, auth);
+    // Create a Google credential with the token
+    const googleCredential = auth.GoogleAuthProvider.credential(idToken);
+
+    // Sign-in the user with the credential
+    // return auth().signInWithCredential(googleCredential);
+    const user_sign_in = auth().signInWithCredential(googleCredential);
+    user_sign_in.then((user) => {
+      console.log(user);
+    })
+    .catch((error) => {
+      console.log(error);
+    })
   };
 
   return (
