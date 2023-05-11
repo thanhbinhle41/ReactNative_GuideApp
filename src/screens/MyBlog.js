@@ -17,7 +17,7 @@ import Blog from "../components/Blog";
 import { useSelector } from "react-redux";
 import { userSelector } from "../store/authSlice";
 
-const MyBlog = () => {
+const MyBlog = ({ navigation }) => {
   const listBlog = [
     {
       name: "Tam đảo - Vĩnh Phúc",
@@ -79,12 +79,13 @@ const MyBlog = () => {
           <Image
             style={styles.imgUser}
             resizeMode="cover"
-            source={{uri: user.image}}
+            source={{ uri: user.image }}
           ></Image>
           <Text style={styles.userText}>{user.fullName}</Text>
         </View>
         <TouchableOpacity
           style={{ flexDirection: "row", alignItems: "center", gap: 2 }}
+          onPress={() => navigation.navigate("CreateEditScreen")}
         >
           <MaterialIcons name="add" size={25} color={"#0072C6"}></MaterialIcons>
           <Text style={{ color: "#0072C6", fontWeight: 600, fontSize: 16 }}>
@@ -187,6 +188,6 @@ const styles = StyleSheet.create({
   imgUser: {
     width: 36,
     height: 36,
-    borderRadius: 36/2
+    borderRadius: 36 / 2
   },
 });

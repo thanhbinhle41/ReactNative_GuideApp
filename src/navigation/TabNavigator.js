@@ -16,6 +16,7 @@ import { MAIN_COLOR } from "../utils/color";
 import { useTheme } from "react-native-paper";
 import EditProfileScreen from "../screens/EditProfileScreen";
 import DetailPlaceScreen from "../screens/DetailPlaceScreen";
+import CreateEditScreen from "../screens/CreateEditScreen";
 
 const Tab = createBottomTabNavigator();
 
@@ -150,6 +151,10 @@ const HomeStackScreen = ({ navigation }) => {
       <HomeStack.Screen
         name="DetailPlaceScreen"
         component={DetailPlaceScreen}
+      />
+      <HomeStack.Screen
+        name="CreateEditScreen"
+        component={CreateEditScreen}
       />
     </HomeStack.Navigator>
   );

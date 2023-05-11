@@ -15,15 +15,14 @@ import { MAIN_COLOR } from "../utils/color";
 
 import Toast from "react-native-toast-message";
 
-import {
-  signInWithEmailAndPassword,
-} from "firebase/auth";
+import { signInWithEmailAndPassword } from "firebase/auth";
 
 import { useDispatch } from "react-redux";
 import { authSliceActions } from "../store/authSlice";
 
 import { doc, getDoc } from "@firebase/firestore";
 import { auth, db } from "../../firebase";
+import { loadingSliceActions } from "../store/loadingSlice";
 
 export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState("");
@@ -47,14 +46,15 @@ export default function LoginScreen({ navigation }) {
         city: data?.city ? data?.city : "",
         image: data?.image ? data?.image : DEFAULT_IMAGE_URL,
       };
-      dispatch(authSliceActions.setUser(userData))
-    } 
-    else {
+      dispatch(authSliceActions.setUser(userData));
+    } else {
       console.log("No such user!");
     }
   };
 
   const handleLogin = () => {
+    // navigation.navigate("TabNavigator", { screen: "Home" });
+    dispatch(loadingSliceActions.setIsLoading(true));
     signInWithEmailAndPassword(auth, email, password)
       .then(async (userCredential) => {
         // Signed in
@@ -62,6 +62,7 @@ export default function LoginScreen({ navigation }) {
         await loadData(user.uid, user.email);
 
         navigation.navigate("TabNavigator", { screen: "Home" });
+        dispatch(loadingSliceActions.setIsLoading(false));
       })
       .catch((error) => {
         const errorCode = error.code;
@@ -71,6 +72,9 @@ export default function LoginScreen({ navigation }) {
           text1: `Login failed: ` + textError,
         });
       });
+  };
+
+  const signInWithGoogle = () => {
   };
 
   return (
@@ -131,7 +135,10 @@ export default function LoginScreen({ navigation }) {
             marginBottom: 30,
           }}
         >
-          <TouchableOpacity onPress={() => {}} style={styles.otherLoginIcon}>
+          <TouchableOpacity
+            onPress={signInWithGoogle}
+            style={styles.otherLoginIcon}
+          >
             <GoogleSVG height={24} width={24}></GoogleSVG>
           </TouchableOpacity>
 
