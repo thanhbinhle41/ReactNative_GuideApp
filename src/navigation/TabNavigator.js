@@ -17,11 +17,12 @@ import { useTheme } from "react-native-paper";
 import EditProfileScreen from "../screens/EditProfileScreen";
 import DetailPlaceScreen from "../screens/DetailPlaceScreen";
 import CreateEditScreen from "../screens/CreateEditScreen";
+import MapScreen from "../screens/MapScreen";
 
 const Tab = createBottomTabNavigator();
 
 const ProfileStack = createNativeStackNavigator();
-const HomeStack = createNativeStackNavigator(); 
+const HomeStack = createNativeStackNavigator();
 
 const TabNavigator = () => {
   return (
@@ -63,10 +64,24 @@ const TabNavigator = () => {
         component={NotificationsScreen}
         options={{
           tabBarBadge: 3,
-          tabBarBadgeStyle: { backgroundColor: 'red' },
+          tabBarBadgeStyle: { backgroundColor: "red" },
           tabBarIcon: ({ color, size }) => (
             <Ionicons
               name="notifications-outline"
+              color={color}
+              size={size}
+            ></Ionicons>
+          ),
+        }}
+      ></Tab.Screen>
+
+      <Tab.Screen
+        name="Explore"
+        component={MapScreen}
+        options={{
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons
+              name="earth"
               color={color}
               size={size}
             ></Ionicons>
@@ -120,7 +135,7 @@ const ProfileStackScreen = ({ navigation }) => {
                 name="account-edit"
                 size={25}
                 backgroundColor={"#fff"}
-                color={'#333333'}
+                color={"#333333"}
                 onPress={() => navigation.navigate("EditProfile")}
               />
             </View>
@@ -139,23 +154,14 @@ const ProfileStackScreen = ({ navigation }) => {
 };
 
 const HomeStackScreen = ({ navigation }) => {
-
   return (
-    <HomeStack.Navigator
-      screenOptions={{ headerShown: false }}
-    >
-      <HomeStack.Screen
-        name="HomeScreen"
-        component={HomeScreen}
-      />
+    <HomeStack.Navigator screenOptions={{ headerShown: false }}>
+      <HomeStack.Screen name="HomeScreen" component={HomeScreen} />
       <HomeStack.Screen
         name="DetailPlaceScreen"
         component={DetailPlaceScreen}
       />
-      <HomeStack.Screen
-        name="CreateEditScreen"
-        component={CreateEditScreen}
-      />
+      <HomeStack.Screen name="CreateEditScreen" component={CreateEditScreen} />
     </HomeStack.Navigator>
   );
 };
