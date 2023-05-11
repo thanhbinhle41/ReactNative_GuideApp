@@ -10,6 +10,7 @@ import Toast from "react-native-toast-message";
 
 import { Provider } from "react-redux";
 import { store } from "./src/store/store";
+import AppLoader from "./src/components/AppLoader";
 
 const Stack = createNativeStackNavigator();
 
@@ -22,7 +23,9 @@ function App() {
   };
 
   return (
+    <>
     <Provider store={store}>
+      <AppLoader/>
       <NavigationContainer theme={CustomDefaultTheme}>
         <Stack.Navigator screenOptions={{ headerShown: false }}>
           <Stack.Screen name="Login" component={LoginScreen} />
@@ -33,6 +36,7 @@ function App() {
 
       <Toast></Toast>
     </Provider>
+    </>
   );
 }
 
