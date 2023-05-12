@@ -26,6 +26,8 @@ import { auth, db } from "../../firebase";
 import { setDoc, doc } from "@firebase/firestore";
 import { createUserWithEmailAndPassword } from "@firebase/auth";
 import { Toast } from "react-native-toast-message/lib/src/Toast";
+import { useDispatch } from "react-redux";
+import { loadingSliceActions } from "../store/loadingSlice";
 
 export default function RegisterScreen({ navigation }) {
   // STATE
@@ -39,6 +41,9 @@ export default function RegisterScreen({ navigation }) {
     password: "",
     cfPassword: "",
   });
+
+  // dispatch
+  const dispatch = useDispatch();
 
 
   // EVENT
@@ -61,6 +66,7 @@ export default function RegisterScreen({ navigation }) {
   };
 
   const saveUserToFireStore = (id) => {
+    dispatch(loadingSliceActions.setIsLoading(true));
     const docRef = doc(db, "user", id);
     const data = {
       fullName: regiterData.fullName,
@@ -68,6 +74,7 @@ export default function RegisterScreen({ navigation }) {
       email: regiterData.email,
     };
     setDoc(docRef, data).then(() => {
+      dispatch(loadingSliceActions.setIsLoading(false));
       Toast.show({
         type: "success",
         text1: "Register successfully",

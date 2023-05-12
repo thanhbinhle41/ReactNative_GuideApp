@@ -9,7 +9,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import { useDispatch, useSelector } from "react-redux";
 import { userSelector } from "../store/authSlice";
@@ -21,17 +21,27 @@ import { MAIN_COLOR } from "../utils/color";
 import Feather from "react-native-vector-icons/Feather";
 
 import * as ImagePicker from "expo-image-picker";
-import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
-import { addDoc, collection } from "@firebase/firestore";
+import {
+  getDownloadURL,
+  ref,
+  uploadBytes,
+  uploadBytesResumable,
+} from "firebase/storage";
+import { addDoc, collection, updateDoc, doc } from "@firebase/firestore";
 import { db, storage } from "../../firebase";
 import { Toast } from "react-native-toast-message/lib/src/Toast";
 import { loadingSliceActions } from "../store/loadingSlice";
+import { blogSliceActions } from "../store/blogSlice";
 
-const CreateEditScreen = ({ navigation }) => {
+let countImages = 0;
+let listUrlImgs = [];
+let listNameImgs = []
+
+const CreateEditScreen = ({ navigation, route }) => {
   // SELECTOR
   const user = useSelector(userSelector);
 
-	const dispatch = useDispatch();
+  const dispatch = useDispatch();
 
   // STATE
   const [blogData, setBlogData] = useState({
@@ -44,43 +54,112 @@ const CreateEditScreen = ({ navigation }) => {
   });
   const [listImg, setListImg] = useState([]);
 
+  // USE EFFECT
+  useEffect(() => {
+    const type = route.params?.type ? route.params?.type : "";
+    if (type === "edit") {
+      const blog = route.params?.blog ? route.params?.blog : {};
+      setBlogData(blog);
+      setListImg(blog?.image ? blog?.image : []);
+    }
+  }, [route])
+
   // EVENTS
   const onPostBlog = async () => {
-		dispatch(loadingSliceActions.setIsLoading(true));
+    if (listImg.length === 0) {
+      Toast.show({
+        type: "error",
+        text1: `Please upload images`,
+      });
+      return;
+    }
+    dispatch(loadingSliceActions.setIsLoading(true));
     await uploadImgFireBase();
-    const listImgNames = listImg.map((uri) => {
-      const fileName = uri.substring(uri.lastIndexOf("/") + 1);
-      return fileName;
+
+    // const promise = listImg.map(async (uri) => {
+    //   const response = await fetch(uri);
+    //   const blob = await response.blob();
+    //   const fileName = uri.substring(uri.lastIndexOf("/") + 1);
+    //   return await uploadImageAsPromise(blob, fileName);
+    // });
+    // Promise.all(promise).then((values) => {
+    //   console.log("done");
+    // });
+    // console.log("done")
+  };
+
+  const uploadImageAsPromise = (file, fileName) => {
+    return new Promise(function (resolve, reject) {
+      const storageRef = ref(storage, `/blog/${fileName}`);
+
+      //Upload file
+      const uploadTask = uploadBytesResumable(storageRef, file);
+
+      //Update progress bar
+      uploadTask.on(
+        "state_changed",
+        function progress(snapshot) {
+          const percentage =
+            (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          console.log(percentage);
+        },
+        (error) => {
+          // Handle unsuccessful uploads
+        },
+        () => {
+          getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+            console.log("File available at", downloadURL);
+          });
+        }
+      );
     });
-    const resBlogData = { ...blogData, image: listImgNames };
-    uploadDataBlog(resBlogData);
   };
 
   // FUNCTIONS
   const uploadImgFireBase = async () => {
-    listImg.forEach(async (uri) => {
+    listImg.forEach(async (uri, index) => {
       const response = await fetch(uri);
       const blob = await response.blob();
-      const fileName = uri.substring(uri.lastIndexOf("/") + 1);
+      let fileName = uri.substring(uri.lastIndexOf("/") + 1);
+      if (route.params?.type === "edit") {
+        fileName = `${blogData?.id}_${index}.` + `jpeg`
+      } 
       const storageRef = ref(storage, `/blog/${fileName}`);
       uploadBytes(storageRef, blob).then((snapshot) => {
         getDownloadURL(snapshot.ref).then((downloadURL) => {
-          console.log(downloadURL);
+          addUrlImage(downloadURL, fileName);
         });
       });
     });
+  };
+
+  const addUrlImage = (url, fileName) => {
+    countImages = countImages + 1;
+    listUrlImgs.push(url);
+    listNameImgs.push(fileName);
+    if (countImages === listImg.length) {
+      const tmpListImgs = [...listUrlImgs, url];
+      const resBlogData = { ...blogData, image: tmpListImgs, imageName: [...listNameImgs, fileName] };
+      if (route.params?.type === "add") {
+        uploadDataBlog(resBlogData);
+      }
+      else if (route.params?.type === "edit") {
+        updateBlog(resBlogData)
+      }
+    }
   };
 
   const uploadDataBlog = (data) => {
     const blogRef = collection(db, "blog");
     addDoc(blogRef, data)
       .then(() => {
-				dispatch(loadingSliceActions.setIsLoading(false));
+        dispatch(blogSliceActions.addBlog(data));
+        dispatch(loadingSliceActions.setIsLoading(false));
         Toast.show({
           type: "success",
           text1: `Post blog successfully!`,
         });
-				navigation.goBack()
+        navigation.goBack();
       })
       .catch((error) => {
         Toast.show({
@@ -89,6 +168,31 @@ const CreateEditScreen = ({ navigation }) => {
         });
         console.log(error);
       });
+    countImages = 0;
+    listUrlImgs = [];
+  };
+
+  const updateBlog = (data) => {
+    const docRef = doc(db, "blog", data.id);
+    updateDoc (docRef, data)
+      .then(() => {
+        dispatch(blogSliceActions.updateBlog({id: data.id, updatedItem: data}));
+        dispatch(loadingSliceActions.setIsLoading(false));
+        Toast.show({
+          type: "success",
+          text1: `Update blog successfully!`,
+        });
+        navigation.goBack();
+      })
+      .catch((error) => {
+        Toast.show({
+          type: "error",
+          text1: `Something went wrong`,
+        });
+        console.log(error);
+      });
+    countImages = 0;
+    listUrlImgs = [];
   };
 
   const choosePhotoFromLibrary = async () => {
@@ -120,7 +224,7 @@ const CreateEditScreen = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.textHeader}>Create own new blog</Text>
+      <Text style={styles.textHeader}>{route.params?.type === "add" ? `Create own new blog` : "Edit the blog"}</Text>
       <View style={styles.info}>
         <View style={styles.user}>
           <Image
@@ -338,7 +442,7 @@ const CreateEditScreen = ({ navigation }) => {
                 fontSize: 16,
               }}
             >
-              {"P O S T   B L O G   N O W"}
+              {route.params?.type === "add" ? "P O S T   B L O G   N O W" : "U P D A T E   B L O G   N O W"}
             </Text>
             <Ionicons name="newspaper-outline" color={"#fff"} size={25} />
           </TouchableOpacity>

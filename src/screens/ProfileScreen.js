@@ -9,12 +9,17 @@ import {
 } from "react-native-paper";
 
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
+import Ionicons from "react-native-vector-icons/Ionicons";
 import { MAIN_COLOR } from "../utils/color";
 
 import { useSelector } from "react-redux";
 import { userSelector } from "../store/authSlice";
+import { auth } from "../../firebase";
+import { Toast } from "react-native-toast-message/lib/src/Toast";
+import { saveAccessToken } from "../utils/utils";
+import { signOut } from "@firebase/auth";
 
-const ProfileScreen = () => {
+const ProfileScreen = ({ navigation }) => {
   // SELECTOR
   const user = useSelector(userSelector);
 
@@ -28,12 +33,33 @@ const ProfileScreen = () => {
     return initials;
   };
 
+  // EVENTS
+
+  const onLogOut = () => {
+    signOut(auth).then(async () => {
+      // Sign-out successful.
+      await saveAccessToken("");
+      Toast.show({
+        type: "success",
+        text1: `Sign out successfully!`,
+      });
+      navigation.navigate("Login")
+
+    }).catch((error) => {
+      // An error happened.
+      Toast.show({
+        type: "error",
+        text1: `Sign out unsuccessfully!`,
+      });
+    });
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.userInfoSection}>
         <View style={{ flexDirection: "row", marginTop: 15 }}>
           <Avatar.Image
-            source={{uri: user.image}}
+            source={{ uri: user.image }}
             size={80}
           />
           <View style={{ marginLeft: 20 }}>
@@ -84,28 +110,28 @@ const ProfileScreen = () => {
       </View>
 
       <View style={styles.menuWrapper}>
-        <TouchableRipple onPress={() => {}}>
+        <TouchableRipple onPress={() => { }}>
           <View style={styles.menuItem}>
             <Icon name="heart-outline" color={MAIN_COLOR} size={25} />
             <Text style={styles.menuItemText}>Your Favorites</Text>
           </View>
         </TouchableRipple>
 
-        <TouchableRipple onPress={() => {}}>
+        <TouchableRipple onPress={() => { }}>
           <View style={styles.menuItem}>
             <Icon name="credit-card" color={MAIN_COLOR} size={25} />
             <Text style={styles.menuItemText}>Payment</Text>
           </View>
         </TouchableRipple>
 
-        <TouchableRipple onPress={() => {}}>
+        <TouchableRipple onPress={() => { }}>
           <View style={styles.menuItem}>
             <Icon name="share-outline" color={MAIN_COLOR} size={25} />
             <Text style={styles.menuItemText}>Tell your friends</Text>
           </View>
         </TouchableRipple>
 
-        <TouchableRipple onPress={() => {}}>
+        <TouchableRipple onPress={() => { }}>
           <View style={styles.menuItem}>
             <Icon
               name="account-settings-outline"
@@ -113,6 +139,17 @@ const ProfileScreen = () => {
               size={25}
             />
             <Text style={styles.menuItemText}>Settings</Text>
+          </View>
+        </TouchableRipple>
+
+        <TouchableRipple onPress={() => onLogOut()}>
+          <View style={styles.menuItem}>
+            <Ionicons
+              name="log-out-outline"
+              color={MAIN_COLOR}
+              size={25}
+            />
+            <Text style={styles.menuItemText}>Sign out</Text>
           </View>
         </TouchableRipple>
       </View>

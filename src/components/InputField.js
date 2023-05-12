@@ -35,7 +35,10 @@ const InputField = ({
             value={value}
             onChangeText={(text) => onChange(text)}
           ></TextInput>
-          <TouchableOpacity style={{marginEnd: 10}} onPress={() => setIsShowPassword(!isShowPassword)}>
+          <TouchableOpacity
+            style={{ marginEnd: 10 }}
+            onPress={() => setIsShowPassword(!isShowPassword)}
+          >
             {!isShowPassword ? (
               <Ionicons name="eye" size={20} color={"#ccc"}></Ionicons>
             ) : (
@@ -53,7 +56,7 @@ const InputField = ({
         ></TextInput>
       )}
 
-      <TouchableOpacity onPress={{ fieldButtonFunction }}>
+      <TouchableOpacity onPress={() => fieldButtonFunction()}>
         <Text style={{ color: MAIN_COLOR, fontWeight: "700" }}>
           {fieldButtonLabel}
         </Text>

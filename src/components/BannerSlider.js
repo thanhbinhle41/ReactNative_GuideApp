@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Image } from 'react-native';
+import { DEFAULT_IMAGE_URL } from '../utils/constant';
 
 export default function BannerSlider({ data }) {
     return (
