@@ -59,7 +59,7 @@ const TabNavigator = () => {
         }}
       ></Tab.Screen>
 
-      <Tab.Screen
+      {/* <Tab.Screen
         name="Notifications"
         component={NotificationsScreen}
         options={{
@@ -73,7 +73,7 @@ const TabNavigator = () => {
             ></Ionicons>
           ),
         }}
-      ></Tab.Screen>
+      ></Tab.Screen> */}
 
       <Tab.Screen
         name="Explore"
