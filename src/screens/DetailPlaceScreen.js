@@ -30,6 +30,13 @@ const DetailPlaceScreen = ({ route, navigation }) => {
     return <BannerSlider data={item} />;
   };
 
+  const onCheckMapNow = () => {
+    navigation.navigate(
+      "Explore",
+      { place: blog?.name }
+    );
+  };
+
   return (
     <ScrollView>
       <View style={styles.container}>
@@ -185,7 +192,7 @@ const DetailPlaceScreen = ({ route, navigation }) => {
           }}
         >
           <TouchableOpacity
-            onPress={() => {}}
+            onPress={() => onCheckMapNow()}
             style={{
               height: 50,
               flexDirection: "row",
