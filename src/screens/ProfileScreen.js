@@ -18,10 +18,12 @@ import { auth } from "../../firebase";
 import { Toast } from "react-native-toast-message/lib/src/Toast";
 import { saveAccessToken } from "../utils/utils";
 import { signOut } from "@firebase/auth";
+import { listMyBlogSelector } from "../store/blogSlice";
 
 const ProfileScreen = ({ navigation }) => {
   // SELECTOR
   const user = useSelector(userSelector);
+  const listMyBlog = useSelector(listMyBlogSelector);
 
   const formatNickName = (fullName) => {
     let initials = "";
@@ -100,17 +102,19 @@ const ProfileScreen = ({ navigation }) => {
             },
           ]}
         >
-          <Title>$140</Title>
-          <Caption>Wallet</Caption>
+          <View>
+            <Title>{listMyBlog.length}</Title>
+          </View>
+          <Caption>Blogs</Caption>
         </View>
         <View style={styles.infoBox}>
-          <Title>12</Title>
-          <Caption>Orders</Caption>
+          <Title>120</Title>
+          <Caption>Rating</Caption>
         </View>
       </View>
 
       <View style={styles.menuWrapper}>
-        <TouchableRipple onPress={() => { }}>
+        {/* <TouchableRipple onPress={() => { }}>
           <View style={styles.menuItem}>
             <Icon name="heart-outline" color={MAIN_COLOR} size={25} />
             <Text style={styles.menuItemText}>Your Favorites</Text>
@@ -129,7 +133,7 @@ const ProfileScreen = ({ navigation }) => {
             <Icon name="share-outline" color={MAIN_COLOR} size={25} />
             <Text style={styles.menuItemText}>Tell your friends</Text>
           </View>
-        </TouchableRipple>
+        </TouchableRipple> */}
 
         <TouchableRipple onPress={() => { }}>
           <View style={styles.menuItem}>
@@ -138,7 +142,7 @@ const ProfileScreen = ({ navigation }) => {
               color={MAIN_COLOR}
               size={25}
             />
-            <Text style={styles.menuItemText}>Settings</Text>
+            <Text style={styles.menuItemText}>Change password</Text>
           </View>
         </TouchableRipple>
 

@@ -27,6 +27,7 @@ import { authSliceActions, userSelector } from "../store/authSlice";
 import { doc, updateDoc } from "@firebase/firestore";
 import { getDownloadURL, ref, uploadBytesResumable } from "@firebase/storage";
 import { DEFAULT_IMAGE_URL } from "../utils/constant";
+import { loadingSliceActions } from "../store/loadingSlice";
 
 const EditProfileScreen = ({ navigation }) => {
   const dispatch = useDispatch();
@@ -116,11 +117,13 @@ const EditProfileScreen = ({ navigation }) => {
       });
       return;
     }
+    dispatch(loadingSliceActions.setIsLoading(true));
     if (profileData.image !== user.image) {
       await uploadImgFireBase(profileData.image);
     } else {
       uploadDataProfile({ ...user, ...profileData});
     }
+    dispatch(loadingSliceActions.setIsLoading(false));
   };
 
   const onChangeDatePicker = (_, selectedDate) => {
