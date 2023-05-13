@@ -62,7 +62,7 @@ const DetailPlaceScreen = ({ route, navigation }) => {
               marginBottom: 10,
             }}
           >
-            {"Tam dao - Vinh Phuc"}
+            {blog?.name}
           </Text>
 
           <RatingStar

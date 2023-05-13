@@ -26,11 +26,12 @@ import {
   deleteDoc,
 } from "firebase/firestore";
 import { loadingSliceActions } from "../store/loadingSlice";
-import { blogSliceActions } from "../store/blogSlice";
+import { blogSliceActions, listMyBlogSelector } from "../store/blogSlice";
 
 const MyBlog = ({ navigation }) => {
   // STATE
   const [listBlogs, setListBlogs] = useState([]);
+  const [textSearch, setTextSearch] = useState("");
 
   const dispatch = useDispatch();
 
@@ -38,21 +39,39 @@ const MyBlog = ({ navigation }) => {
 
   const user = useSelector(userSelector);
 
+  const listMyBlog = useSelector(listMyBlogSelector)
+
+  
+  const loadData = async () => {
+    dispatch(loadingSliceActions.setIsLoading(true));
+    const q = query(collection(db, "blog"), where("user_id", "==", user.uid));
+    const querySnapshot = await getDocs(q);
+    const listBlogQuery = [];
+    querySnapshot.forEach((doc) => {
+      // doc.data() is never undefined for query doc snapshots
+      listBlogQuery.push({ ...doc.data(), id: doc.id });
+    });
+    setListBlogs(listBlogQuery);
+    dispatch(blogSliceActions.setMyBlog(listBlogQuery));
+    dispatch(loadingSliceActions.setIsLoading(false));
+  };
+
   useEffect(() => {
-    const loadData = async () => {
-      dispatch(loadingSliceActions.setIsLoading(true));
-      const q = query(collection(db, "blog"), where("user_id", "==", user.uid));
-      const querySnapshot = await getDocs(q);
-      const listBlogQuery = [];
-      querySnapshot.forEach((doc) => {
-        // doc.data() is never undefined for query doc snapshots
-        listBlogQuery.push({ ...doc.data(), id: doc.id });
-      });
-      setListBlogs(listBlogQuery);
-      dispatch(loadingSliceActions.setIsLoading(false));
-    };
     loadData();
   }, []);
+
+  useEffect(() => {
+    setListBlogs(listMyBlog);
+    setTextSearch("");
+  }, [dispatch, listMyBlog])
+
+  useEffect(() => {
+    if (textSearch.trim() === "") {
+      setListBlogs(listMyBlog);
+    }
+    const tmpSearchRes = listMyBlog.filter((item) => item.name.includes(textSearch));
+    setListBlogs(tmpSearchRes);
+  }, [textSearch])
 
   // EVENTS FUNCTIONS
   const onDelteBlog = async (blog_id) => {
@@ -81,6 +100,7 @@ const MyBlog = ({ navigation }) => {
         <TextInput
           placeholder="Search something..."
           style={styles.textInputSearch}
+          onChangeText={(text) => setTextSearch(text)}
         ></TextInput>
         <TouchableOpacity>
           <Ionicons name="search" size={25} color={"#C6C6C6"}></Ionicons>

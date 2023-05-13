@@ -35,7 +35,7 @@ import { blogSliceActions } from "../store/blogSlice";
 
 let countImages = 0;
 let listUrlImgs = [];
-let listNameImgs = []
+let listNameImgs = [];
 
 const CreateEditScreen = ({ navigation, route }) => {
   // SELECTOR
@@ -62,7 +62,7 @@ const CreateEditScreen = ({ navigation, route }) => {
       setBlogData(blog);
       setListImg(blog?.image ? blog?.image : []);
     }
-  }, [route])
+  }, [route]);
 
   // EVENTS
   const onPostBlog = async () => {
@@ -117,17 +117,19 @@ const CreateEditScreen = ({ navigation, route }) => {
 
   // FUNCTIONS
   const uploadImgFireBase = async () => {
+    console.log(listImg);
     listImg.forEach(async (uri, index) => {
       const response = await fetch(uri);
       const blob = await response.blob();
       let fileName = uri.substring(uri.lastIndexOf("/") + 1);
       if (route.params?.type === "edit") {
-        fileName = `${blogData?.id}_${index}.` + `jpeg`
-      } 
+        fileName = `${blogData?.id}_${index}.` + `jpeg`;
+      }
       const storageRef = ref(storage, `/blog/${fileName}`);
       uploadBytes(storageRef, blob).then((snapshot) => {
         getDownloadURL(snapshot.ref).then((downloadURL) => {
           addUrlImage(downloadURL, fileName);
+          console.log(downloadURL);
         });
       });
     });
@@ -138,18 +140,22 @@ const CreateEditScreen = ({ navigation, route }) => {
     listUrlImgs.push(url);
     listNameImgs.push(fileName);
     if (countImages === listImg.length) {
-      const tmpListImgs = [...listUrlImgs, url];
-      const resBlogData = { ...blogData, image: tmpListImgs, imageName: [...listNameImgs, fileName] };
+      const tmpListImgs = [...listUrlImgs];
+      const resBlogData = {
+        ...blogData,
+        image: tmpListImgs,
+        imageName: [...listNameImgs],
+      };
       if (route.params?.type === "add") {
         uploadDataBlog(resBlogData);
-      }
-      else if (route.params?.type === "edit") {
-        updateBlog(resBlogData)
+      } else if (route.params?.type === "edit") {
+        updateBlog(resBlogData);
       }
     }
   };
 
   const uploadDataBlog = (data) => {
+    console.log(data);
     const blogRef = collection(db, "blog");
     addDoc(blogRef, data)
       .then(() => {
@@ -170,13 +176,16 @@ const CreateEditScreen = ({ navigation, route }) => {
       });
     countImages = 0;
     listUrlImgs = [];
+    listNameImgs = [];
   };
 
   const updateBlog = (data) => {
     const docRef = doc(db, "blog", data.id);
-    updateDoc (docRef, data)
+    updateDoc(docRef, data)
       .then(() => {
-        dispatch(blogSliceActions.updateBlog({id: data.id, updatedItem: data}));
+        dispatch(
+          blogSliceActions.updateBlog({ id: data.id, updatedItem: data })
+        );
         dispatch(loadingSliceActions.setIsLoading(false));
         Toast.show({
           type: "success",
@@ -193,6 +202,7 @@ const CreateEditScreen = ({ navigation, route }) => {
       });
     countImages = 0;
     listUrlImgs = [];
+    listNameImgs = [];
   };
 
   const choosePhotoFromLibrary = async () => {
@@ -224,7 +234,9 @@ const CreateEditScreen = ({ navigation, route }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.textHeader}>{route.params?.type === "add" ? `Create own new blog` : "Edit the blog"}</Text>
+      <Text style={styles.textHeader}>
+        {route.params?.type === "add" ? `Create own new blog` : "Edit the blog"}
+      </Text>
       <View style={styles.info}>
         <View style={styles.user}>
           <Image
@@ -442,7 +454,9 @@ const CreateEditScreen = ({ navigation, route }) => {
                 fontSize: 16,
               }}
             >
-              {route.params?.type === "add" ? "P O S T   B L O G   N O W" : "U P D A T E   B L O G   N O W"}
+              {route.params?.type === "add"
+                ? "P O S T   B L O G   N O W"
+                : "U P D A T E   B L O G   N O W"}
             </Text>
             <Ionicons name="newspaper-outline" color={"#fff"} size={25} />
           </TouchableOpacity>

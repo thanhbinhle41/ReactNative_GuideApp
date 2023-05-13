@@ -8,14 +8,17 @@ import Ionicons from "react-native-vector-icons/Ionicons";
 import { MAIN_COLOR } from "../utils/color";
 import Blog from "../components/Blog";
 import { useDispatch, useSelector } from "react-redux";
-import { authSliceActions, listUsersBlogSelector, userSelector } from "../store/authSlice";
+import {
+  authSliceActions,
+  listUsersBlogSelector,
+  userSelector,
+} from "../store/authSlice";
 
 import { collection, query, getDocs, getDoc, doc } from "firebase/firestore";
 import { db } from "../../firebase";
 import { DEFAULT_IMAGE_URL } from "../utils/constant";
 import { loadingSliceActions } from "../store/loadingSlice";
 import { blogSliceActions, listBlogSelector } from "../store/blogSlice";
-
 
 const HomeScreen = ({ navigation }) => {
   const listTabFilter = [
@@ -30,6 +33,7 @@ const HomeScreen = ({ navigation }) => {
   // STATE
   const [selectedTab, setSelectedTab] = useState(0);
   const [listBlogsSearchRes, setListBlogsSearchRes] = useState([]);
+  const [textSearch, setTextSearch] = useState("");
 
   // selector
   const user = useSelector(userSelector);
@@ -47,8 +51,8 @@ const HomeScreen = ({ navigation }) => {
     const listBlogQuery = [];
     querySnapshot.forEach(async (docData) => {
       // doc.data() is never undefined for query doc snapshots
-      const blog = docData.data()
-      listBlogQuery.unshift({...blog, id: docData.id});
+      const blog = docData.data();
+      listBlogQuery.unshift({ ...blog, id: docData.id });
       if (!listUsersBlog.hasOwnProperty(blog.user_id)) {
         const docRef = doc(db, "user", blog.user_id);
         const docSnap = await getDoc(docRef);
@@ -64,24 +68,33 @@ const HomeScreen = ({ navigation }) => {
             city: data?.city ? data?.city : "",
             image: data?.image ? data?.image : DEFAULT_IMAGE_URL,
           };
-          dispatch(authSliceActions.addUsersBlog({ id: blog.user_id, data: userData }));
+          dispatch(
+            authSliceActions.addUsersBlog({ id: blog.user_id, data: userData })
+          );
         }
       }
     });
     dispatch(blogSliceActions.setBlog(listBlogQuery));
     dispatch(loadingSliceActions.setIsLoading(false));
-    setListBlogsSearchRes(listBlogQuery)
-  }
+    setListBlogsSearchRes(listBlogQuery);
+  };
 
   useEffect(() => {
-    loadData()
-  }, [])
+    loadData();
+  }, []);
 
   useEffect(() => {
     setListBlogsSearchRes(listBlogs);
-  }, [dispatch, listBlogs])
+    setTextSearch("");
+  }, [dispatch, listBlogs]);
 
-  
+  useEffect(() => {
+    if (textSearch.trim() === "") {
+      setListBlogsSearchRes(listBlogs);
+    }
+    const tmpSearchRes = listBlogs.filter((item) => item.name.includes(textSearch));
+    setListBlogsSearchRes(tmpSearchRes);
+  }, [textSearch])
 
   return (
     <SafeAreaView style={styles.container}>
@@ -103,6 +116,7 @@ const HomeScreen = ({ navigation }) => {
         <TextInput
           placeholder="Search something..."
           style={styles.textInputSearch}
+          onChangeText={(text) => setTextSearch(text)}
         ></TextInput>
         <TouchableOpacity>
           <Ionicons name="search" size={25} color={"#C6C6C6"}></Ionicons>
@@ -126,9 +140,7 @@ const HomeScreen = ({ navigation }) => {
               ]}
             >
               <Text
-                style={[
-                  index === selectedTab ? styles.colorSelectedText : "",
-                ]}
+                style={[index === selectedTab ? styles.colorSelectedText : ""]}
               >
                 {item.name}
               </Text>
@@ -137,10 +149,8 @@ const HomeScreen = ({ navigation }) => {
         }}
       />
 
-
       <View style={styles.main}>
-        {listBlogsSearchRes.length > 0
-          ?
+        {listBlogsSearchRes.length > 0 ? (
           <FlatList
             data={listBlogsSearchRes}
             vertical={true}
@@ -157,11 +167,22 @@ const HomeScreen = ({ navigation }) => {
               );
             }}
           />
-          :
-          <View style={{ flex: 1, alignItems: 'center', justifyContent: "center" }}>
-            <Text style={{ color: "#ccc", fontSize: 24, fontStyle: 'italic', fontWeight: 500 }}>No blog? Create new now</Text>
+        ) : (
+          <View
+            style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
+          >
+            <Text
+              style={{
+                color: "#ccc",
+                fontSize: 24,
+                fontStyle: "italic",
+                fontWeight: 500,
+              }}
+            >
+              No blog? Create new now
+            </Text>
           </View>
-        }
+        )}
       </View>
     </SafeAreaView>
   );
@@ -238,6 +259,6 @@ const styles = StyleSheet.create({
   // MAIN CONTENT
   main: {
     flex: 4,
-    marginTop: 20
+    marginTop: 20,
   },
 });
