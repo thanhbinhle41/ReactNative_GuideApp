@@ -1,5 +1,5 @@
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import { SafeAreaView } from "react-native-safe-area-context";
 import { FlatList, TextInput } from "react-native-gesture-handler";
@@ -7,9 +7,18 @@ import { FlatList, TextInput } from "react-native-gesture-handler";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import { MAIN_COLOR } from "../utils/color";
 import Blog from "../components/Blog";
-import { useSelector } from "react-redux";
-import { userSelector } from "../store/authSlice";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  authSliceActions,
+  listUsersBlogSelector,
+  userSelector,
+} from "../store/authSlice";
 
+import { collection, query, getDocs, getDoc, doc } from "firebase/firestore";
+import { db } from "../../firebase";
+import { DEFAULT_IMAGE_URL } from "../utils/constant";
+import { loadingSliceActions } from "../store/loadingSlice";
+import { blogSliceActions, listBlogSelector } from "../store/blogSlice";
 
 const HomeScreen = ({ navigation }) => {
   const listTabFilter = [
@@ -21,128 +30,160 @@ const HomeScreen = ({ navigation }) => {
     { name: "Huế", value: "hue" },
   ];
 
-  const listBlog = [
-    {
-      name: "Tam đảo - Vĩnh Phúc",
-      rating: 4,
-      user: {
-        name: "Binh Beo Beu",
-        image: require("../assets/images/misc/user.png"),
-      },
-      sourceImg: require("../assets/images/background/tamDao.jpg"),
-    },
-    {
-      name: "Tam đảo - Vĩnh Phúc",
-      rating: 4,
-      user: {
-        name: "Binh Beo Beu",
-        image: require("../assets/images/misc/user.png"),
-      },
-      sourceImg: require("../assets/images/background/tamDao.jpg"),
-    },
-    {
-      name: "Tam đảo - Vĩnh Phúc",
-      rating: 4,
-      user: {
-        name: "Binh Beo Beu",
-        image: require("../assets/images/misc/user.png"),
-      },
-      sourceImg: require("../assets/images/background/tamDao.jpg"),
-    },
-    {
-      name: "Tam đảo - Vĩnh Phúc",
-      rating: 4,
-      user: {
-        name: "Binh Beo Beu",
-        image: require("../assets/images/misc/user.png"),
-      },
-      sourceImg: require("../assets/images/background/tamDao.jpg"),
-    },
-  ];
-
   // STATE
   const [selectedTab, setSelectedTab] = useState(0);
+  const [listBlogsSearchRes, setListBlogsSearchRes] = useState([]);
+  const [textSearch, setTextSearch] = useState("");
 
   // selector
   const user = useSelector(userSelector);
+  const listUsersBlog = useSelector(listUsersBlogSelector);
+  const listBlogs = useSelector(listBlogSelector);
 
+  //dispatch
+  const dispatch = useDispatch();
+
+  // Fetch data
+  const loadData = async () => {
+    dispatch(loadingSliceActions.setIsLoading(true));
+    const q = query(collection(db, "blog"));
+    const querySnapshot = await getDocs(q);
+    const listBlogQuery = [];
+    querySnapshot.forEach(async (docData) => {
+      // doc.data() is never undefined for query doc snapshots
+      const blog = docData.data();
+      listBlogQuery.unshift({ ...blog, id: docData.id });
+      if (!listUsersBlog.hasOwnProperty(blog.user_id)) {
+        const docRef = doc(db, "user", blog.user_id);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          const userData = {
+            uid: blog.user_id,
+            email: data?.email,
+            fullName: data?.fullName,
+            dob: data?.dob,
+            phone: data?.phone ? data?.phone : "",
+            country: data?.country ? data?.country : "",
+            city: data?.city ? data?.city : "",
+            image: data?.image ? data?.image : DEFAULT_IMAGE_URL,
+          };
+          dispatch(
+            authSliceActions.addUsersBlog({ id: blog.user_id, data: userData })
+          );
+        }
+      }
+    });
+    dispatch(blogSliceActions.setBlog(listBlogQuery));
+    dispatch(loadingSliceActions.setIsLoading(false));
+    setListBlogsSearchRes(listBlogQuery);
+  };
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  useEffect(() => {
+    setListBlogsSearchRes(listBlogs);
+    setTextSearch("");
+  }, [dispatch, listBlogs]);
+
+  useEffect(() => {
+    if (textSearch.trim() === "") {
+      setListBlogsSearchRes(listBlogs);
+    }
+    const tmpSearchRes = listBlogs.filter((item) => item.name.includes(textSearch));
+    setListBlogsSearchRes(tmpSearchRes);
+  }, [textSearch])
 
   return (
     <SafeAreaView style={styles.container}>
       {/* HEADER TEXT */}
-      
-        <View>
-          <Text style={styles.textHeader}>
-            <Text>One </Text>
-            <Text style={{ fontWeight: "bold" }}>View </Text>
-            <Text>Worth</Text>
-          </Text>
-          <Text style={styles.textHeader}>
-            <Text>a </Text>
-            <Text style={{ fontWeight: "bold" }}>Thousand Words</Text>
-          </Text>
-        </View>
 
-        <View style={styles.searchBar}>
-          <TextInput
-            placeholder="Search something..."
-            style={styles.textInputSearch}
-          ></TextInput>
-          <TouchableOpacity>
-            <Ionicons name="search" size={25} color={"#C6C6C6"}></Ionicons>
-          </TouchableOpacity>
-        </View>
-
-        <FlatList
-          style={styles.listTabFilter}
-          data={listTabFilter}
-          horizontal={true}
-          showsHorizontalScrollIndicator={false}
-          keyExtractor={(_, index) => index}
-          renderItem={({ item, index }) => {
-            return (
-              <TouchableOpacity
-                activeOpacity={1}
-                onPress={() => setSelectedTab(index)}
-                style={[
-                  styles.itemTabFilter,
-                  index === selectedTab ? styles.selectedTab : "",
-                ]}
-              >
-                <Text
-                  style={[
-                    index === selectedTab ? styles.colorSelectedText : "",
-                  ]}
-                >
-                  {item.name}
-                </Text>
-              </TouchableOpacity>
-            );
-          }}
-        />
-      
-
-      <View style={styles.main}>
-        <FlatList
-          data={listBlog}
-          vertical={true}
-          showsVerticalScrollIndicator={false}
-          keyExtractor={(_, index) => index}
-          renderItem={({ item }) => {
-            return (
-              <Blog
-                name={item.name}
-                sourceImg={item.sourceImg}
-                rating={item.rating}
-                user={item.user}
-                navigation={navigation}
-              ></Blog>
-            );
-          }}
-        />
+      <View>
+        <Text style={styles.textHeader}>
+          <Text>One </Text>
+          <Text style={{ fontWeight: "bold" }}>View </Text>
+          <Text>Worth</Text>
+        </Text>
+        <Text style={styles.textHeader}>
+          <Text>a </Text>
+          <Text style={{ fontWeight: "bold" }}>Thousand Words</Text>
+        </Text>
       </View>
 
-      {/* <Text>Alo</Text> */}
+      <View style={styles.searchBar}>
+        <TextInput
+          placeholder="Search something..."
+          style={styles.textInputSearch}
+          onChangeText={(text) => setTextSearch(text)}
+        ></TextInput>
+        <TouchableOpacity>
+          <Ionicons name="search" size={25} color={"#C6C6C6"}></Ionicons>
+        </TouchableOpacity>
+      </View>
+
+      <FlatList
+        style={styles.listTabFilter}
+        data={listTabFilter}
+        horizontal={true}
+        showsHorizontalScrollIndicator={false}
+        keyExtractor={(_, index) => index}
+        renderItem={({ item, index }) => {
+          return (
+            <TouchableOpacity
+              activeOpacity={1}
+              onPress={() => setSelectedTab(index)}
+              style={[
+                styles.itemTabFilter,
+                index === selectedTab ? styles.selectedTab : "",
+              ]}
+            >
+              <Text
+                style={[index === selectedTab ? styles.colorSelectedText : ""]}
+              >
+                {item.name}
+              </Text>
+            </TouchableOpacity>
+          );
+        }}
+      />
+
+      <View style={styles.main}>
+        {listBlogsSearchRes.length > 0 ? (
+          <FlatList
+            data={listBlogsSearchRes}
+            vertical={true}
+            showsVerticalScrollIndicator={false}
+            keyExtractor={(_, index) => index}
+            renderItem={({ item }) => {
+              return (
+                <Blog
+                  user={listUsersBlog[item.user_id]}
+                  blog={item}
+                  rating={""}
+                  navigation={navigation}
+                ></Blog>
+              );
+            }}
+          />
+        ) : (
+          <View
+            style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
+          >
+            <Text
+              style={{
+                color: "#ccc",
+                fontSize: 24,
+                fontStyle: "italic",
+                fontWeight: 500,
+              }}
+            >
+              No blog? Create new now
+            </Text>
+          </View>
+        )}
+      </View>
     </SafeAreaView>
   );
 };
@@ -218,6 +259,6 @@ const styles = StyleSheet.create({
   // MAIN CONTENT
   main: {
     flex: 4,
-    marginTop: 20
+    marginTop: 20,
   },
 });

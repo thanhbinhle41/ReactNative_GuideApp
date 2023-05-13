@@ -8,56 +8,88 @@ import {
   Image,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import React from "react";
+import React, { useEffect, useState } from "react";
 
 import Ionicons from "react-native-vector-icons/Ionicons";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
-import { MAIN_COLOR } from "../utils/color";
 import Blog from "../components/Blog";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { userSelector } from "../store/authSlice";
 
+import { db } from "../../firebase";
+import {
+  collection,
+  query,
+  where,
+  getDocs,
+  doc,
+  deleteDoc,
+} from "firebase/firestore";
+import { loadingSliceActions } from "../store/loadingSlice";
+import { blogSliceActions, listMyBlogSelector } from "../store/blogSlice";
+
 const MyBlog = ({ navigation }) => {
-  const listBlog = [
-    {
-      name: "Tam đảo - Vĩnh Phúc",
-      rating: 4,
-      user: {
-        name: "Binh Beo Beu",
-        image: require("../assets/images/misc/user.png"),
-      },
-      sourceImg: require("../assets/images/background/tamDao.jpg"),
-    },
-    {
-      name: "Tam đảo - Vĩnh Phúc",
-      rating: 4,
-      user: {
-        name: "Binh Beo Beu",
-        image: require("../assets/images/misc/user.png"),
-      },
-      sourceImg: require("../assets/images/background/tamDao.jpg"),
-    },
-    {
-      name: "Tam đảo - Vĩnh Phúc",
-      rating: 4,
-      user: {
-        name: "Binh Beo Beu",
-        image: require("../assets/images/misc/user.png"),
-      },
-      sourceImg: require("../assets/images/background/tamDao.jpg"),
-    },
-    {
-      name: "Tam đảo - Vĩnh Phúc",
-      rating: 4,
-      user: {
-        name: "Binh Beo Beu",
-        image: require("../assets/images/misc/user.png"),
-      },
-      sourceImg: require("../assets/images/background/tamDao.jpg"),
-    },
-  ];
+  // STATE
+  const [listBlogs, setListBlogs] = useState([]);
+  const [textSearch, setTextSearch] = useState("");
+
+  const dispatch = useDispatch();
+
+  // SELECTOR
 
   const user = useSelector(userSelector);
+
+  const listMyBlog = useSelector(listMyBlogSelector)
+
+  
+  const loadData = async () => {
+    dispatch(loadingSliceActions.setIsLoading(true));
+    const q = query(collection(db, "blog"), where("user_id", "==", user.uid));
+    const querySnapshot = await getDocs(q);
+    const listBlogQuery = [];
+    querySnapshot.forEach((doc) => {
+      // doc.data() is never undefined for query doc snapshots
+      listBlogQuery.push({ ...doc.data(), id: doc.id });
+    });
+    setListBlogs(listBlogQuery);
+    dispatch(blogSliceActions.setMyBlog(listBlogQuery));
+    dispatch(loadingSliceActions.setIsLoading(false));
+  };
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  useEffect(() => {
+    setListBlogs(listMyBlog);
+    setTextSearch("");
+  }, [dispatch, listMyBlog])
+
+  useEffect(() => {
+    if (textSearch.trim() === "") {
+      setListBlogs(listMyBlog);
+    }
+    const tmpSearchRes = listMyBlog.filter((item) => item.name.includes(textSearch));
+    setListBlogs(tmpSearchRes);
+  }, [textSearch])
+
+  // EVENTS FUNCTIONS
+  const onDelteBlog = async (blog_id) => {
+    console.log(blog_id);
+    await deleteDoc(doc(db, "blog", blog_id));
+    dispatch(blogSliceActions.removeBlog({ id: blog_id }));
+
+    const tmpListBlog = [...listBlogs];
+    const index = tmpListBlog.findIndex((item) => item.id === blog_id);
+    if (index !== -1) {
+      tmpListBlog.splice(index, 1);
+      setListBlogs(tmpListBlog);
+    }
+  };
+
+  const onEditBlog = (blog) => {
+    navigation.navigate("CreateEditScreen", { blog: blog, type: "edit" });
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -68,6 +100,7 @@ const MyBlog = ({ navigation }) => {
         <TextInput
           placeholder="Search something..."
           style={styles.textInputSearch}
+          onChangeText={(text) => setTextSearch(text)}
         ></TextInput>
         <TouchableOpacity>
           <Ionicons name="search" size={25} color={"#C6C6C6"}></Ionicons>
@@ -85,7 +118,9 @@ const MyBlog = ({ navigation }) => {
         </View>
         <TouchableOpacity
           style={{ flexDirection: "row", alignItems: "center", gap: 2 }}
-          onPress={() => navigation.navigate("CreateEditScreen")}
+          onPress={() =>
+            navigation.navigate("CreateEditScreen", { type: "add" })
+          }
         >
           <MaterialIcons name="add" size={25} color={"#0072C6"}></MaterialIcons>
           <Text style={{ color: "#0072C6", fontWeight: 600, fontSize: 16 }}>
@@ -95,24 +130,43 @@ const MyBlog = ({ navigation }) => {
       </View>
 
       <View style={styles.main}>
-        <FlatList
-          data={listBlog}
-          vertical={true}
-          showsVerticalScrollIndicator={false}
-          keyExtractor={(_, index) => index}
-          renderItem={({ item }) => {
-            return (
-              <Blog
-                name={item.name}
-                sourceImg={item.sourceImg}
-                rating={item.rating}
-                user={item.user}
-                showUser={false}
-                showActions={true}
-              ></Blog>
-            );
-          }}
-        />
+        {listBlogs.length > 0 ? (
+          <FlatList
+            data={listBlogs}
+            vertical={true}
+            showsVerticalScrollIndicator={false}
+            keyExtractor={(_, index) => index}
+            renderItem={({ item }) => {
+              return (
+                <Blog
+                  user={user}
+                  blog={item}
+                  rating={""}
+                  showUser={false}
+                  showActions={true}
+                  navigation={navigation}
+                  onDelteBlog={onDelteBlog}
+                  onEditBlog={() => onEditBlog(item)}
+                ></Blog>
+              );
+            }}
+          />
+        ) : (
+          <View
+            style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
+          >
+            <Text
+              style={{
+                color: "#ccc",
+                fontSize: 24,
+                fontStyle: "italic",
+                fontWeight: 500,
+              }}
+            >
+              No blog? Create new now
+            </Text>
+          </View>
+        )}
       </View>
     </SafeAreaView>
   );
@@ -188,6 +242,6 @@ const styles = StyleSheet.create({
   imgUser: {
     width: 36,
     height: 36,
-    borderRadius: 36 / 2
+    borderRadius: 36 / 2,
   },
 });

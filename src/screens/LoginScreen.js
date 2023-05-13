@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View, TouchableOpacity } from "react-native";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import LoginSVG from "../assets/images/misc/login.svg";
 import GoogleSVG from "../assets/images/misc/google.svg";
@@ -23,14 +23,32 @@ import { authSliceActions } from "../store/authSlice";
 import { doc, getDoc } from "@firebase/firestore";
 import { auth, db } from "../../firebase";
 import { loadingSliceActions } from "../store/loadingSlice";
+import { DEFAULT_IMAGE_URL } from "../utils/constant";
+import { getAccessToken, saveAccessToken } from "../utils/utils";
+
+
 
 export default function LoginScreen({ navigation }) {
+  // STATE
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
+
+  // useEffect(() => {
+  //   const vertifyUser = async () => {
+  //     dispatch(loadingSliceActions.setIsLoading(true));
+  //     const token = await getAccessToken();
+  //     if (token || token === "") {
+  //       navigation.navigate("TabNavigator", { screen: "Home" });
+  //     }
+  //     dispatch(loadingSliceActions.setIsLoading(false));
+  //   }
+  //   vertifyUser();
+  // }, [navigation])
+
   const dispatch = useDispatch();
 
-  const loadData = async (uid, email) => {
+  const loadData = async (uid, email, token) => {
     const docRef = doc(db, "user", uid);
     const docSnap = await getDoc(docRef);
 
@@ -47,35 +65,43 @@ export default function LoginScreen({ navigation }) {
         image: data?.image ? data?.image : DEFAULT_IMAGE_URL,
       };
       dispatch(authSliceActions.setUser(userData));
+      await saveAccessToken(token);
     } else {
       console.log("No such user!");
     }
   };
 
   const handleLogin = () => {
-    navigation.navigate("TabNavigator", { screen: "Home" });
-    // dispatch(loadingSliceActions.setIsLoading(true));
-    // signInWithEmailAndPassword(auth, email, password)
-    //   .then(async (userCredential) => {
-    //     // Signed in
-    //     const user = userCredential.user;
-    //     await loadData(user.uid, user.email);
+    // navigation.navigate("TabNavigator", { screen: "Home" });
+    dispatch(loadingSliceActions.setIsLoading(true));
+    signInWithEmailAndPassword(auth, email, password)
+      .then(async (userCredential) => {
+        // Signed in
+        const user = userCredential.user;
+        await loadData(user.uid, user.email, user.stsTokenManager.accessToken);
 
-    //     navigation.navigate("TabNavigator", { screen: "Home" });
-    //     dispatch(loadingSliceActions.setIsLoading(false));
-    //   })
-    //   .catch((error) => {
-    //     const errorCode = error.code;
-    //     let textError = errorCode.split("/")[1].split("-").join(" ");
-    //     Toast.show({
-    //       type: "error",
-    //       text1: `Login failed: ` + textError,
-    //     });
-    //   });
+        navigation.navigate("TabNavigator", { screen: "Home" });
+        dispatch(loadingSliceActions.setIsLoading(false));
+      })
+      .catch((error) => {
+        const errorCode = error?.code ? error?.code : "";
+        console.log(error)
+        let textError = errorCode.split("/")[1].split("-").join(" ");
+        dispatch(loadingSliceActions.setIsLoading(false));
+        Toast.show({
+          type: "error",
+          text1: `Login failed: ` + textError,
+        });
+      });
   };
 
   const signInWithGoogle = () => {
   };
+
+  const onForgotPassword = () => {
+    navigation.navigate("Forgot")
+    // sendPasswordResetEmail(auth, )
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -114,7 +140,7 @@ export default function LoginScreen({ navigation }) {
           }
           inputType={"password"}
           fieldButtonLabel={"Forgot?"}
-          fieldButtonFunction={() => {}}
+          fieldButtonFunction={() => onForgotPassword()}
           value={password}
           onChange={(text) => setPassword(text)}
         ></InputField>
@@ -142,11 +168,11 @@ export default function LoginScreen({ navigation }) {
             <GoogleSVG height={24} width={24}></GoogleSVG>
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => {}} style={styles.otherLoginIcon}>
+          <TouchableOpacity onPress={() => { }} style={styles.otherLoginIcon}>
             <FbSVG height={24} width={24}></FbSVG>
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => {}} style={styles.otherLoginIcon}>
+          <TouchableOpacity onPress={() => { }} style={styles.otherLoginIcon}>
             <TwitterSVG height={24} width={24}></TwitterSVG>
           </TouchableOpacity>
         </View>
